@@ -1,0 +1,93 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.logging.Logger;
+
+import org.codehaus.jackson.JsonParseException;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class ConvertWorkflowData implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+
+  public static class WorkflowEntry {
+    private String title;
+    private String content;
+    private String user;
+    private String tags;
+    private String timestamp;
+    
+    public void setTitle(String title) {
+      this.title = title;
+    }
+    public String getTitle() {
+      return title;
+    }
+    public void setContent(String content) {
+      this.content = content;
+    }
+    public String getContent() {
+      return content;
+    }
+    public void setUser(String user) {
+      this.user = user;
+    }
+    public String getUser() {
+      return user;
+    }
+    public void setTags(String tags) {
+      this.tags = tags;
+    }
+    public String getTags() {
+      return tags;
+    }
+    public void setTimestamp(String timestamp) {
+      this.timestamp = timestamp;
+    }
+    public String getTimestamp() {
+      return timestamp;
+    }
+  }
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.parseAndCheck(args);
+    
+    DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    
+    RecordReader r = new RecordReader(flags.getString("input"));
+    RecordWriter w = new RecordWriter(flags.getString("output"));
+    JsonUtil ju = new JsonUtil();
+    int wrong = 0;
+    while (r.next()) {
+      try {
+      WorkflowEntry we = ju.fromJson(r.value(), WorkflowEntry.class);
+      Post p = new Post();
+      p.setTitle(we.getTitle());
+      p.setContent(we.getContent());
+      String [] tags = we.getTags().split(",");
+      for (String tag : tags) 
+        p.getTags().add(tag);
+      p.setUserId(we.getUser());
+      p.setTimestamp(formatter.parse(we.getTimestamp()).getTime());
+      w.add(ju.toJson(p));
+      } catch (JsonParseException e) {
+        e.printStackTrace();
+        wrong++;
+        continue;
+      }
+    } 
+    r.close();
+    w.close();
+    LOG.info("wrong: " + wrong);
+  }
+
+}

@@ -1,0 +1,111 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Vector;
+import java.util.logging.Logger;
+
+import org.thunlp.io.GzipTextFileWriter;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.TextFileReader;
+import org.thunlp.io.TextFileWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.misc.StringUtil;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class ImportARFF implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  JsonUtil J = new JsonUtil();
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.add("num_folds");
+    flags.parseAndCheck(args);
+    
+    String [] filenames = flags.getString("input").split(",");
+    File [] files = new File[filenames.length];
+    for (int i = 0; i < filenames.length; i++) {
+      files[i] = new File(filenames[i]);
+    }
+    convertMultipleFiles(
+        files, flags.getFile("output"), flags.getInt("num_folds"));
+  }
+  
+  private void convertMultipleFiles(File [] inputs, File output, int numFolds) 
+  throws IOException {
+    GzipTextFileWriter writer = new GzipTextFileWriter(output);
+    for (File f : inputs) {
+      TextFileReader reader = new TextFileReader(f);
+      convertARFF(reader, writer, numFolds);
+      reader.close();
+    }
+    writer.close();
+  }
+
+  private void convertARFF(
+      TextFileReader input, TextFileWriter output, int numFolds) 
+  throws IOException {
+    Vector<String> features = new Vector<String>();
+    // Read ARFF header.
+    String line;
+    while ((line = input.readLine()) != null) {
+      if (line.equals("@data"))
+        break;
+      if (line.startsWith("@attribute")) {
+        String [] cols = line.split(" ");
+        if (cols.length == 3) {
+          features.add(cols[1]);
+        } else {
+          LOG.severe("bad attribute:" + line);
+        }
+      }
+    }
+    LOG.info("found " + features.size() + " features");
+    
+    Post p = new Post();
+    List<String> words = new ArrayList<String>();
+    Random random = new Random();
+    while ((line = input.readLine()) != null) {
+      words.clear();
+      p.getTags().clear();
+      String [] terms = line.substring(1, line.length() - 1).split(",");
+      for (String term : terms) {
+        int sep = term.indexOf(' ');
+        if (sep >= 0 && sep < term.length()) {
+          int fid = Integer.parseInt(term.substring(0, sep));
+          int count = Integer.parseInt(term.substring(sep + 1));
+          for (int i = 0; i < count; i++) {
+            if (fid >=0 && fid < features.size()) {
+              String f = features.get(fid);
+              if (f.startsWith("TAG_")) {
+                p.getTags().add(f.substring(4));
+              } else {
+                words.add(f);
+              }
+            } else {
+              LOG.severe("cannot find feature:" + fid);
+            }
+          }
+        } else {
+          LOG.severe("Cannot split term:" + term);
+        }
+      }
+
+      p.setUserId(Integer.toHexString(random.nextInt()));
+      p.setId(Integer.toHexString(random.nextInt()));
+      p.setResourceKey(Integer.toHexString(random.nextInt()));
+      p.setTimestamp(0);
+      p.setTitle(StringUtil.join(words, " "));
+      p.setContent("");
+      p.setExtras(Integer.toString(random.nextInt(numFolds)));
+      output.writeLine(J.toJson(p));
+    } 
+  }
+}

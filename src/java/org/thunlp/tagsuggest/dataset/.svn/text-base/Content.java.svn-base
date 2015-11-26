@@ -1,0 +1,74 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+/**
+ * 正文
+ * 
+ * @author He Weipeng
+ */
+public class Content {
+	/**
+	 * Paragraphs
+	 */
+	private List<String> paras;
+	
+	public Content() {
+		paras = new ArrayList<String>();
+	}
+	
+	public Content(Element elmt) {
+		NodeList nl = elmt.getElementsByTagName("paragraph");
+		paras = new ArrayList<String>();
+		for (int i = 0; i < nl.getLength(); i++) {
+			paras.add(nl.item(i).getTextContent());
+		}
+	}
+	
+	/**
+	 * @return 正文的段落数
+	 */
+	public int getNumOfParas() {
+		return paras.size();
+	}
+	
+	public String getParagraph(int index) {
+		return paras.get(index);
+	}
+	
+	/**
+	 * @return 正文的长度（按字算）
+	 */
+	public int getSize() {
+		int size = 0;
+		for (int i = 0; i < paras.size(); i++) {
+			size += paras.get(i).length();
+		}
+		
+		return size;
+	}
+	
+	public String toXML() {
+		StringBuffer xml = new StringBuffer();
+		xml.append("<content>\n");
+		for (int i = 0; i < paras.size(); i++) {
+			xml.append("<paragraph id=\"").append(i).append("\"><![CDATA[")
+					.append(paras.get(i)).append("]]></paragraph>\n");
+		}
+		xml.append("</content>");
+		
+		return xml.toString();
+	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < paras.size(); i++) {
+			sb.append(paras.get(i)).append('\n');
+		}
+		return sb.toString();
+	}
+}

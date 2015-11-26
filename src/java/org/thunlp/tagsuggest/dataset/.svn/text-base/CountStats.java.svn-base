@@ -1,0 +1,102 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.IOException;
+import java.util.Iterator;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
+import org.thunlp.hadoop.MapReduceHelper;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.language.chinese.ForwardMaxWordSegment;
+import org.thunlp.language.chinese.WordSegment;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class CountStats implements GenericTool {
+  public static enum C {
+    NUM_POSTS,
+    TOTAL_TITLE_LENGTH,
+    TOTAL_CONTENT_LENGTH,
+    TOTAL_NUM_TAGS,
+    NUM_UNIQUE_TAGS,
+  }
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output", "tag frequency table.");
+    flags.parseAndCheck(args);
+    
+    JobConf job = new JobConf(this.getClass());
+    MapReduceHelper.runTextSeqFileMapReduce(
+        job, StatMapper.class, StatReducer.class,
+        flags.getString("input"), flags.getString("output"));
+  }
+  
+  public static class StatMapper implements Mapper<Text, Text, Text, Text> {
+    Text outkey = new Text();
+    Text outvalue = new Text();
+    JsonUtil J = new JsonUtil();
+    WordSegment ws = null;
+    
+    public void configure(JobConf job) {
+      try {
+        ws = new ForwardMaxWordSegment();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+
+    public void map(Text key, Text value,
+        OutputCollector<Text, Text> collector, Reporter r) throws IOException {
+      Post p = J.fromTextAsJson(value, Post.class);
+      String [] words;
+      
+      words = ws.segment(p.getTitle());
+      r.incrCounter(C.TOTAL_TITLE_LENGTH, words.length);
+      words = ws.segment(p.getContent());
+      r.incrCounter(C.TOTAL_CONTENT_LENGTH, words.length);
+      r.incrCounter(C.TOTAL_NUM_TAGS, p.getTags().size());
+      r.incrCounter(C.NUM_POSTS, 1);
+      for (String tag : p.getTags()) {
+        outkey.set(tag);
+        collector.collect(outkey, outvalue);
+      }
+    } 
+
+    public void close() {
+    }
+  }
+
+  public static class StatReducer implements Reducer<Text, Text, Text, Text> {
+    Text outkey = new Text();
+    Text outvalue = new Text();
+
+    public void configure(JobConf job) {
+    }
+
+    public void reduce(Text key, Iterator<Text> values,
+        OutputCollector<Text, Text> collector, Reporter r) throws IOException {
+      r.incrCounter(C.NUM_UNIQUE_TAGS, 1);
+      long n = 0;
+      while (values.hasNext()) {
+        values.next();
+        n++;
+      }
+      outvalue.set(Long.toString(n));
+      collector.collect(key, outvalue);
+    }
+
+    public void close() {
+    }
+  }
+}

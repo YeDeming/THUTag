@@ -1,0 +1,359 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase
+END
+SMTKEWrong.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKEWrong.java
+END
+OnDiskDataSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/OnDiskDataSource.java
+END
+TagAllocationModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TagAllocationModel.java
+END
+ThreeMethodSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/ThreeMethodSuggest.java
+END
+ExpandRankKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/ExpandRankKE.java
+END
+NewTagAllocationModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NewTagAllocationModel.java
+END
+TFIDFKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TFIDFKE.java
+END
+SMTKEInverseRight.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKEInverseRight.java
+END
+ExpandRankKG.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/ExpandRankKG.java
+END
+TAMTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TAMTagSuggest.java
+END
+SMTTagSuggestWithoutNull.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestWithoutNull.java
+END
+TextRankKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TextRankKE.java
+END
+SMTTagSuggestLDA.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestLDA.java
+END
+SMTKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKE.java
+END
+KnnTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/KnnTagSuggest.java
+END
+NaiveBayesTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NaiveBayesTagSuggest.java
+END
+Filter.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/Filter.java
+END
+SMTTagSuggestAllNull.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestAllNull.java
+END
+SuggestDemo.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SuggestDemo.java
+END
+LdaKnnKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/LdaKnnKE.java
+END
+NewTAMTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NewTAMTagSuggest.java
+END
+SMTTagSuggestRemoveLowScoreTag.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestRemoveLowScoreTag.java
+END
+TFIDFTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TFIDFTagSuggest.java
+END
+SMTTagSuggestTf.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestTf.java
+END
+SMTKEInverseWrong.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKEInverseWrong.java
+END
+SMTTagSuggestNull.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestNull.java
+END
+FeatureDrivenTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/FeatureDrivenTagSuggest.java
+END
+SMTTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggest.java
+END
+SMTKETitleWrong.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKETitleWrong.java
+END
+TFIDFKeywordExtraction.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TFIDFKeywordExtraction.java
+END
+SMTTagSuggestWithPost.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestWithPost.java
+END
+SMTKETitleIteration.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKETitleIteration.java
+END
+MixedTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/MixedTagSuggest.java
+END
+LdaKnnTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/LdaKnnTagSuggest.java
+END
+SMTKETitleLDA.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKETitleLDA.java
+END
+SMTTagSuggestKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestKeyword.java
+END
+TextRankKeywordExtraction.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TextRankKeywordExtraction.java
+END
+NoiseTagLdaKERight.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NoiseTagLdaKERight.java
+END
+SMTTagSuggestKeywordTitle.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestKeywordTitle.java
+END
+NoiseTagLdaKE.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NoiseTagLdaKE.java
+END
+NoiseTagLdaModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NoiseTagLdaModel.java
+END
+SMTTagSuggest_HighTfidf.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggest_HighTfidf.java
+END
+SMTKEInverse.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKEInverse.java
+END
+SMTKERight.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKERight.java
+END
+SMTTagSuggestHarmonic.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestHarmonic.java
+END
+SMTTagSuggestTextRank.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestTextRank.java
+END
+SMTModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTModel.java
+END
+ContentRankTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/ContentRankTagSuggest.java
+END
+SMTTagSuggestTextRankOnly.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestTextRankOnly.java
+END
+SMTTagSuggestWithNullTag.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestWithNullTag.java
+END
+SMTKETitle.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKETitle.java
+END
+ListDataSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/ListDataSource.java
+END
+NoiseTagLdaTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/NoiseTagLdaTagSuggest.java
+END
+SMTKETitleModel3.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTKETitleModel3.java
+END
+DataSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/DataSource.java
+END
+TagLdaTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/TagLdaTagSuggest.java
+END
+SMTTagSuggestNullToTag.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestNullToTag.java
+END
+SMTTagSuggestWordToNull.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestWordToNull.java
+END
+SMTTagSuggestInverse.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/contentbase/SMTTagSuggestInverse.java
+END

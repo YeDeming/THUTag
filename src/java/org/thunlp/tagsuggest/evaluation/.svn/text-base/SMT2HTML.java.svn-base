@@ -1,0 +1,37 @@
+package org.thunlp.tagsuggest.evaluation;
+
+import java.io.File;
+
+import org.thunlp.io.TextFileWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.contentbase.SMTModel;
+import org.thunlp.tagsuggest.contentbase.TagAllocationModel;
+import org.thunlp.tool.GenericTool;
+
+public class SMT2HTML implements GenericTool {
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.addWithDefaultValue("output", "");
+    flags.addWithDefaultValue("key", "word");
+    flags.parseAndCheck(args);
+    
+    String output = flags.getString("input") + ".html";
+    if (!flags.getString("output").equals("")) {
+      output = flags.getString("output");
+    }
+    SMTModel smt =
+      new SMTModel(flags.getString("input"));
+    String html = null;
+    if (flags.getString("key").equals("word")) {
+      html = smt.toWordIndexedString();
+    } else {
+      html = smt.toTagIndexedString();
+    }
+    TextFileWriter.writeToFile(
+        html, new File(output), "UTF-8");
+  }
+
+}

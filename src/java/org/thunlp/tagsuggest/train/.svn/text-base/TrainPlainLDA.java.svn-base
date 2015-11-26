@@ -1,0 +1,89 @@
+package org.thunlp.tagsuggest.train;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import org.thunlp.hadooplda.LdaModel;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tagsuggest.common.ModelTrainer;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagFilter;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+import org.thunlp.tool.GenericTool;
+
+public class TrainPlainLDA implements ModelTrainer, GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  WordFeatureExtractor extractor = null;
+  Lexicon wordlex = new Lexicon();
+  Lexicon taglex = new Lexicon();
+  JsonUtil J = new JsonUtil();
+  
+  @Override
+  public void train(String inputPath, String modelPath, Properties config)
+      throws IOException {
+    String fold = config.getProperty("fold", "-1");
+    WordFeatureExtractor.buildLexicons(inputPath, wordlex, taglex, config);
+    
+    extractor = new WordFeatureExtractor(config);
+    extractor.setWordLexicon(wordlex);
+    int numTopics = Integer.parseInt(config.getProperty("numtopics", "32"));
+    int numIterations = Integer.parseInt(config.getProperty("niter", "40"));
+
+    List<String []> docs = loadDocs(inputPath, fold);
+
+    LdaModel model = new LdaModel(numTopics);
+    model.setAlpha(Double.parseDouble(config.getProperty("alpha", "-1")));
+    model.setBeta(Double.parseDouble(config.getProperty("beta", "0.01")));
+    model.train(docs, numIterations);
+    FileOutputStream output = new FileOutputStream(modelPath);
+    model.saveModel(output);
+  }
+  
+  private List<String []> loadDocs(String path, String fold)
+  throws IOException {
+    List<String []> docs = new ArrayList<String []>();
+    Set<String> filtered = new HashSet<String>();
+    // Load all docs.
+    RecordReader reader = new RecordReader(path);
+    List<String> tokens = new ArrayList<String>();
+    while (reader.next()) {
+      Post p = J.fromJson(reader.value(), Post.class);
+      tokens.clear();
+      if (!p.getExtras().equals(fold)) {
+        String [] words = extractor.extract(p);
+        tokens.addAll(Arrays.asList(words));
+      }
+      if (tokens.size() > 0) {
+        docs.add(tokens.toArray(new String[tokens.size()]));
+      }
+    }
+    reader.close();
+    LOG.info("load " + docs.size() + " docs.");
+    return docs;
+  }
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.add("config");
+    flags.parseAndCheck(args);
+    
+    Properties config = ConfigIO.configFromString(flags.getString("config"));
+    train(flags.getString("input"), flags.getString("output"), config);      
+  }
+
+
+}

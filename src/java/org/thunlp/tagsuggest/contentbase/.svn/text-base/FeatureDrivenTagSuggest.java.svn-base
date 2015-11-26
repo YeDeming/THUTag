@@ -1,0 +1,268 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.TextFileReader;
+import org.thunlp.misc.AnyDoublePair;
+import org.thunlp.misc.TopPool;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.LegacyFeatureExtractor;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.text.Lexicon;
+import org.thunlp.text.Lexicon.Word;
+
+public class FeatureDrivenTagSuggest implements TagSuggest {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  private Map<String, FeatureInfo> features;
+  private LegacyFeatureExtractor extractor = null;
+  // private static List<WeightString> EMPTY_SUGGESTION = 
+  //   new LinkedList<WeightString>();
+  private Properties config = new Properties();
+  private Lexicon featureLex = null;
+
+  @Override
+  public void loadModel(String modelPath) throws IOException {
+    File tagsFile = new File(modelPath, "parameters");
+    TextFileReader reader;
+    String line = null;
+    features = new Hashtable<String, FeatureInfo>();
+    // Load tags.
+    reader = new TextFileReader(tagsFile, "UTF-8");
+    int tagListSize = 0;
+    while ((line = reader.readLine()) != null) {
+      FeatureInfo fi = new FeatureInfo(line);
+      tagListSize += fi.tags.size();
+      features.put(fi.name, fi);
+    }
+    LOG.info("load " + features.size() + " words with labels.");
+    LOG.info("the mean tags per feature is " + 
+        ((double) tagListSize / features.size()));
+    reader.close();
+
+    featureLex = new Lexicon(new File(modelPath, "features.lex"));
+    extractor = new LegacyFeatureExtractor(config);
+  }
+
+
+
+  @Override
+  public void feedback(Post p) {
+    // Do nothing.
+  }
+
+  @Override
+  public void setConfig(Properties config) {
+    this.config = config;
+    extractor = new LegacyFeatureExtractor(config);
+  }
+
+  @Override
+  public List<WeightString> suggest(Post p, StringBuilder explain) {
+    // First let us prepare.
+    Map<String, Double> tagweights = new Hashtable<String, Double>();
+
+    List<AnyDoublePair<String>> toexplain = null;
+    if (explain != null) {
+      toexplain = new ArrayList<AnyDoublePair<String>>();
+    }
+
+    // FDT consists of 3 steps.
+    // Step 1 extract the features from the post p.
+    String [] raw = extractor.extractFeatures(p);
+
+    // Step 2 weight the features.
+    Map<String, Double> weights = makeWeights(raw, config);
+
+    // Step 3 suggest tags by each feature, and combine them together.  
+    for (Entry<String, Double> e : weights.entrySet()) {
+      FeatureInfo fi = features.get(e.getKey());
+      if (fi != null) {
+        if (explain != null) {
+          toexplain.add(new AnyDoublePair<String>(e.getKey(), e.getValue()));
+        }
+        for (AnyDoublePair<String> pair : fi.tags) {
+          Double weight = tagweights.get(pair.first);
+          if (weight == null)
+            weight = 0.0;
+          tagweights.put(pair.first, weight + pair.second * e.getValue());
+        }
+      }
+    }
+    if (explain != null) {
+      // Sort explanations.
+      Collections.sort(toexplain, new Comparator<AnyDoublePair<String>>() {
+        public int compare(AnyDoublePair<String> o1,
+            AnyDoublePair<String> o2) {
+          return Double.compare(o2.second, o1.second);
+        }
+      });
+      for (int i = 0; i < toexplain.size(); i++) {
+        String featureName = toexplain.get(i).first;
+        FeatureInfo fi = features.get(featureName);
+        explain.append(featureName);
+        explain.append(String.format("(%.3f)", toexplain.get(i).second));
+        explain.append(" => ");
+        int k = 0;
+        for (AnyDoublePair<String> tag : fi.tags) {
+          explain.append(" ");
+          explain.append(tag.first);
+          explain.append(":");
+          explain.append(String.format("%.2f", tag.second));
+          k++;
+          if (k > 5)
+            break;
+        }
+        explain.append(" (total " + fi.tags.size() + ")\n");
+      }
+    }
+
+    // Sort the suggested tags.
+    List<WeightString> suggested = new ArrayList<WeightString>();
+    for (Entry<String, Double> e : tagweights.entrySet()) {
+      suggested.add(new WeightString(e.getKey(), e.getValue()));
+    }
+    Collections.sort(suggested, new Comparator<WeightString>() {
+
+      @Override
+      public int compare(WeightString o1, WeightString o2) {
+        return Double.compare(o2.weight, o1.weight);
+      }
+
+    });    
+
+    if (explain != null) {
+      explain.append("TAGS: ");
+      int i = 0;
+      for (WeightString ws : suggested) {
+        explain.append(" ");
+        explain.append(ws.text);
+        explain.append(":");
+        explain.append(String.format("%.2f", ws.weight));
+        i++;
+        if (i > 10)
+          break;
+      }
+      explain.append("(total " + suggested.size() + " )\n");
+    }
+
+    return suggested;
+  }
+
+  public static class FeatureInfo {
+    public String name;
+    public List<AnyDoublePair<String>> tags;
+    public double weight;
+
+    public FeatureInfo() {
+      tags = new ArrayList<AnyDoublePair<String>>();
+    }
+    public FeatureInfo(String str) {
+      tags = new ArrayList<AnyDoublePair<String>>();
+      fromString(str);
+    }
+
+    public String toString() {
+      StringBuilder line = new StringBuilder();
+      line.append(name);
+      line.append(' ');
+      line.append(String.format("%.4f", weight));
+      for (AnyDoublePair<String> tag : tags) {
+        line.append(' ');
+        line.append(tag.first);
+        line.append(':');
+        line.append(String.format("%.4f", tag.second));
+      }
+      return line.toString();
+    }
+
+    public void fromString(String str) {
+      String [] cols = str.split(" ");
+      tags.clear();
+      this.name = cols[0];
+      this.weight = Double.parseDouble(cols[1]);
+      for (int i = 2; i < cols.length; i++) {
+        String [] strpair = cols[i].split(":");
+        if (strpair.length == 2) {
+          AnyDoublePair<String> tag = new AnyDoublePair<String>();
+          tag.first = strpair[0];
+          tag.second = Double.parseDouble(strpair[1]);
+          if (tag.second > 0) {
+            tags.add(tag);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Use TF * feature weight to weight features in the post.
+   * @param raw
+   * @param config
+   * @return
+   */
+  public Map<String, Double> makeWeights(
+      String [] raw, Properties config) {
+    Map<String, Double> weights = new Hashtable<String, Double>();
+    // Compute TF.
+    int n = 0;
+    for (String f : raw) {
+      if (!features.containsKey(f))
+        continue;
+      Double w = weights.get(f);
+      if (w == null)
+        w = 0.0;
+      weights.put(f, w + 1.0);
+      n++;
+    }
+
+    // Compute log(TF) * log(feature weight).
+    for (Entry<String, Double> f : weights.entrySet()) {
+      Word w = featureLex.getWord(f.getKey());
+      if (w == null) {
+        LOG.warning("Feature [" + f.getKey() + "] not available in lexicon");
+        continue;
+      }
+      double idf = featureLex.getNumDocs() / (double)w.getDocumentFrequency(); 
+      weights.put(f.getKey(), 
+          Math.log(f.getValue() / raw.length + 1.0) 
+          * Math.log(idf + 1.0));
+    }
+
+    // L-2 Normalization.
+    double norm = 0.0;
+    for (Entry<String, Double> f : weights.entrySet()) {
+      norm += f.getValue() * f.getValue();
+    }
+    norm = Math.sqrt(norm);
+    Map<String, Double> normed = new Hashtable<String, Double>();
+    for (Entry<String, Double> f : weights.entrySet()) {
+      normed.put(f.getKey(), f.getValue() / norm);
+    }
+
+    // Pick k most salient features.
+    int maxFeatures = Integer.parseInt(config.getProperty("k", "10"));
+    TopPool<WeightString> kept = new TopPool<WeightString>(maxFeatures);
+    for (Entry<String, Double> e : normed.entrySet()) {
+      WeightString ws = new WeightString(e.getKey(), e.getValue());
+      kept.add(ws);
+    }
+    normed.clear();
+    for (WeightString ws : kept) {
+      normed.put(ws.text, ws.weight);
+    }
+    return normed;
+  }
+
+
+}

@@ -1,0 +1,105 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.Flags;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tool.GenericTool;
+
+public class Frequency implements GenericTool {
+	private static Logger LOG = Logger.getAnonymousLogger();
+	private Properties config = null;
+	JsonUtil J = new JsonUtil();
+
+	@Override
+	public void run(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+		Flags flags = new Flags();
+		flags.add("input");
+		flags.add("output");
+		flags.add("config");
+		flags.parseAndCheck(args);
+
+		Properties config = ConfigIO
+				.configFromString(flags.getString("config"));
+		buildVcb(flags.getString("input"), flags.getString("output"), config);
+	}
+
+	public void buildVcb(String input, String output, Properties config) {
+		this.config = config;
+
+		int counter = 0;
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					new FileInputStream(input), "UTF-8"));
+
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(output), "UTF-8"));
+
+			Counter<String> termFreq = new Counter<String>();
+			int totalWord = 0;
+			int lineCount = 0;
+
+			String line;
+			while ((line = in.readLine()) != null) {
+				String words[] = line.split(" ");
+				for (String word : words) {
+					termFreq.inc(word, 1);
+					totalWord++;
+				}
+				lineCount++;
+			}
+			in.close();
+
+			List<WeightString> sortWords = new ArrayList<WeightString>();
+			Iterator<Entry<String, Long>> iter = termFreq.iterator();
+			while (iter.hasNext()) {
+				Entry<String, Long> e = iter.next();
+				sortWords.add(new WeightString(e.getKey(), e.getValue()));
+			}
+
+			Collections.sort(sortWords, new Comparator<WeightString>() {
+				@Override
+				public int compare(WeightString o1, WeightString o2) {
+					return Double.compare(o2.weight, o1.weight);
+				}
+			});
+
+			out.write("Lines:" + lineCount + "\n");
+			out.write("The num of words:" + totalWord + "\n");
+			out.write("Average words per line:" + (double) totalWord / (double) lineCount + "\n");
+			out.write("Average frequency per word:" + (double) totalWord / (double) sortWords.size() + "\n");
+			out.flush();
+			for (int i = 0; i < sortWords.size(); i++) {
+				out.write(sortWords.get(i).text + " "
+								+ sortWords.get(i).weight);
+				out.newLine();
+				out.flush();
+			}
+			out.close();
+
+		} catch (IOException e) {
+			// TODO: handle exception
+			System.out.println(counter);
+			e.printStackTrace();
+		}
+	}
+}

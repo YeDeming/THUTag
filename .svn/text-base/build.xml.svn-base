@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tagsuggest" default="all" basedir="./">
+    <target name="init" description="Initialize environment">
+        <property name="path.bin" value="bin"/>
+        <property name="path.build" value="build"/>
+				<property name="path.build.classes" value="build/classes"/>
+				<property name="path.build.tests" value="build/tests" />
+        <property name="path.lib" value="lib"/>
+        <property name="path.src" value="src/java"/>
+				<property name="path.tests" value="src/test" />
+        <property name="compile.debug" value="true"/>
+        <property name="compile.deprecation" value="true"/>
+        <property name="compile.optimize" value="true"/>
+        <property file="${basedir}/build.properties"/>
+		<property name="web" value="src/web" />
+		<property name="path.lib" value="${path.lib}" />
+		<property name="warFile" value="tagsuggest.war" />
+		<property name="warDir" value="${path.build}/war" />
+
+        <path id="compile.classpath">
+            <fileset dir="${path.lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        
+				<path id="test.classpath">
+            <fileset dir="${path.lib}">
+                <include name="*.jar"/>
+            </fileset>
+						<pathelement path="${path.build.classes}" />
+        </path>
+
+    </target>
+
+    <target name="make_directories" description="Creates all project directories" depends="init">
+        <mkdir dir="${path.build}"/>
+				<mkdir dir="${path.build.classes}"/>
+				<mkdir dir="${path.build.tests}" />
+        <mkdir dir="${path.lib}"/>
+        <mkdir dir="${path.src}"/>
+    </target>
+
+    <target name="prepare" depends="init, make_directories" description="Prepare build directory">
+
+    </target>
+
+    <target name="compile" depends="prepare" description="Compile source">
+        <javac debug="${compile.debug}" deprecation="${compile.deprecation}" nowarn="on" destdir="${path.build.classes}" optimize="${compile.optimize}" srcdir="${path.src}" encoding="UTF-8">
+            <classpath refid="compile.classpath"/>
+        </javac>
+    </target>
+
+    <target name="clean" depends="init" description="Wipeout all generated files">
+        <delete dir="${path.build}"/>
+    </target>
+
+		<target name="compile-test" depends="compile">
+			<javac srcdir="${path.tests}" destdir="${path.build.tests}" encoding="UTF-8">
+				<classpath refid="test.classpath"/>
+			</javac>
+		</target>
+
+		<target name="clean-compile-test">
+			<delete>
+				<fileset dir="${path.build.tests}" includes="**/*.class" />
+			</delete>
+		</target>
+
+		<target name="test" depends="compile-test">
+			<junit>
+				<classpath refid="test.classpath" />
+				<classpath>
+					<pathelement path="${path.build.tests}"/>
+				</classpath>
+				<formatter type="brief" usefile="false" />
+				<batchtest fork="yes">
+					<fileset dir="${path.build.tests}">
+						<include name="**/*Test.class" />
+					</fileset>
+				</batchtest>
+			</junit>
+		</target>
+
+    <target name="all" depends="clean,onejar,hadoop-jar,war,src-zip" description="Clean and compile all components"/>
+
+    <target name="jar" depends="compile" description="Create binary distribution">
+        <jar basedir="${path.build.classes}" jarfile="${path.build}/tagsuggest-lib.jar">
+            <include name="**/*.class"/>
+        </jar>
+    </target>
+    <target name="onejar" depends="jar" description="Create one-jar runnable">
+      <taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask"  classpath="lib/one-jar-ant-task-0.96.jar"></taskdef>
+        <manifest file="ONEJAR.MF">
+					<attribute name="One-Jar-Main-Class" value="org.thunlp.tool.EntryPoint" />
+				</manifest>
+      <one-jar destfile="${path.build}/tagsuggest.jar" manifest="ONEJAR.MF">
+        <main>
+        	<fileset dir="${path.build.classes}">
+        		<include name="**/*.class"/>
+        	</fileset>
+      	</main>
+        <lib>
+					<fileset dir="lib">
+						<include name="**/*.jar"/>
+						<exclude name="**/one-jar-*.jar"/>
+					</fileset>
+        </lib>
+      </one-jar>
+    </target>
+    <target name="hadoop-jar" depends="compile" description="Create binary distribution">
+				<copy todir="${path.build.classes}/lib">
+					<fileset dir="lib">
+						<include name="**/*.jar"/>
+        		<exclude name="**/hadoop-*-core.jar"/>
+					</fileset>
+				</copy>
+				<pathconvert property="hadoop-jar.classpath" pathsep=" ">
+					<regexpmapper from="^(.*)/lib/(.*\.jar)$" to="lib/\2" />
+					<path>
+						<fileset dir="${path.build.classes}/lib">
+							<include name="**/*.jar" />
+						</fileset>
+					</path>
+				</pathconvert>
+        <manifest file="MANIFEST.MF">
+  				<attribute name="Class-Path" value="${hadoop-jar.classpath}" />
+					<attribute name="Main-Class" value="org.thunlp.tool.EntryPoint" />
+				</manifest>
+				<jar basedir="${path.build.classes}" manifest="MANIFEST.MF" jarfile="${path.build}/tagsuggest-hadoop.jar">
+            <include name="**/*.class"/>
+						<include name="**/*.jar"/>
+				</jar>
+				<delete dir="${path.build.classes}/lib"/>
+				<delete file="MANIFEST.MF" />
+    </target>
+    
+		<target name="src-zip" depends="compile" description="Creates source distribution">
+        <delete>
+            <fileset dir="${path.build}" includes="*-src.zip"/>
+        </delete>
+        <zip basedir="./src" destfile="${path.build}/tagsuggest-src.zip" whenempty="fail">
+            <include name="**/*.*"/>
+            <include name="*"/>
+            <include name="**/*"/>
+            <exclude name="${path.dist}/**/*.*"/>
+            <exclude name="*.*~"/>      <!-- JEdit backups -->
+            <exclude name=".nbattrs"/>  <!-- Netbeans filesystem attributes -->
+            <exclude name="*.old"/>
+        </zip>
+    </target>
+
+	<target name="war" depends="init, compile">
+		<copy todir="${warDir}/WEB-INF/classes">
+			<fileset dir="${path.build.classes}" includes="**/*.class" />
+		</copy>
+
+		<copy todir="${warDir}/WEB-INF/lib">
+			<fileset dir="lib" includes="**/*.*" excludes="**/servlet-api.jar" />
+		</copy>
+
+		<copy todir="${warDir}">
+			<fileset dir="${web}" includes="**/*.*" />
+		</copy>
+
+		<!-- Create war file and place in ear directory -->
+		<jar jarfile="build/${warFile}" basedir="${warDir}" />
+	</target>
+	
+    <target name="dist" depends="jar,src-zip"/>
+
+</project>

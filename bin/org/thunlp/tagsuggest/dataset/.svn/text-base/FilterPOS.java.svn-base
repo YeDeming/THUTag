@@ -1,0 +1,74 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.IOException;
+
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
+import org.thunlp.hadoop.MapReduceHelper;
+import org.thunlp.html.HtmlReformatter;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.language.chinese.IctclasWordSegment;
+import org.thunlp.language.chinese.LangUtils;
+import org.thunlp.misc.Flags;
+import org.thunlp.misc.StringUtil;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class FilterPOS implements GenericTool {
+
+  public void run(String [] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.parseAndCheck(args);
+    
+    JobConf job = new JobConf(this.getClass());
+    MapReduceHelper.runTextSeqFileMap(
+        job, FilterPOSMapper.class,
+        flags.getString("input"), flags.getString("output"));
+  }
+  
+  public static class FilterPOSMapper
+  implements Mapper<Text, Text, Text, Text> {
+    IctclasWordSegment ws = new IctclasWordSegment("/global/tools/ictclas");
+    JsonUtil J = new JsonUtil();
+    Text outvalue = new Text();
+    
+    @Override
+    public void map(Text key, Text value, OutputCollector<Text, Text> out,
+        Reporter r) throws IOException {
+      Post p = J.fromTextAsJson(value, Post.class);
+      String content = p.getContent();
+      content = HtmlReformatter.getPlainText(content);
+      content = LangUtils.removePunctuationMarks(content);
+      content = LangUtils.removeLineEnds(content);
+      content = LangUtils.removeExtraSpaces(content);
+      content = LangUtils.T2S(content);
+      if (content.length() > 4096) {
+        return;
+      }
+      String [] words = 
+        ws.segmentWithPostagFilter(content, "n[a-z]?|v[a-z]?|a");
+      p.setContent(StringUtil.join(words, " "));
+      J.toTextAsJson(p, outvalue);
+      out.collect(key, outvalue);
+    }
+
+    @Override
+    public void configure(JobConf arg0) {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public void close() throws IOException {
+      // TODO Auto-generated method stub
+      
+    }
+    
+  }
+  
+}

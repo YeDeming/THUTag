@@ -1,0 +1,44 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.MyTag;
+
+public class CompareTwoMethod {
+
+	/**
+	 * @param args
+	 * @throws FileNotFoundException 
+	 * @throws UnsupportedEncodingException 
+	 */
+	public static void main(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+		BufferedReader first = new BufferedReader(new InputStreamReader(
+				new FileInputStream("tam_test"), "UTF-8"));
+		BufferedReader second = new BufferedReader(new InputStreamReader(
+				new FileInputStream("knn_test"), "UTF-8"));
+		JsonUtil J = new JsonUtil();
+		String line1;
+		String line2;
+		int total = 0;
+		int counter = 0;
+		while((line1 = first.readLine()) != null){
+			line2 = second.readLine();
+			MyTag p1 = J.fromJson(line1, MyTag.class);
+			MyTag p2 = J.fromJson(line2, MyTag.class);
+			String word1 = p1.getSuggestTags().get(0).text;
+			String word2 = p2.getSuggestTags().get(0).text;
+			if(!word1.equals(word2)){
+				counter ++;
+			}
+			total ++;
+		}
+		System.out.println(total+ ":"+counter);
+	}
+}

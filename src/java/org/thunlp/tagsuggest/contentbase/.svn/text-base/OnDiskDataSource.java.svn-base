@@ -1,0 +1,154 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+
+public class OnDiskDataSource<T> implements DataSource<T> {
+  private static Logger LOG = Logger.getAnonymousLogger();
+
+  private String inputPath = null;
+  private String outputDir = null;
+  private int currentIteration = 0;
+  private int iterationsToKeep = 0;
+  private RecordReader currentInput = null;
+  private RecordWriter currentOutput = null;
+  private Class payloadClass = null;
+  private T currentData = null;
+  private JsonUtil ju = new JsonUtil();
+
+  /**
+   * Build an OnDiskDataSource.
+   * @param input record file, each record is a Json string of given object.
+   * @param outputDir the directory for outputs of each iteration.
+   * @param c T's class object.
+   * @param n Number of iterations to keep.
+   * @throws IOException 
+   */
+  public OnDiskDataSource(String inputPath, String outputDir, Class c, int n)
+  throws IOException {
+    this.inputPath = inputPath;
+    this.outputDir = outputDir;
+    File outputDirFile = new File(outputDir);
+    if (!outputDirFile.exists())
+      outputDirFile.mkdir();
+    iterationsToKeep = n;
+    currentIteration = 0;
+    payloadClass = c;
+    startIteration(); 
+  }
+
+  private void startIteration() throws IOException {
+    if (currentOutput != null) {
+      if (currentData != null)
+        currentOutput.add(ju.toJson(currentData));
+      currentInput.close();
+      currentOutput.close();
+    }
+
+    if (currentIteration == 0) {
+      currentInput = new RecordReader(inputPath);
+      LOG.info("Start iteration " + currentIteration +
+          " with " + inputPath);
+    } else {
+      String currentInputName = fileNameAtN(currentIteration - 1);
+      currentInput = new RecordReader(currentInputName);
+      LOG.info("Start iteration " + currentIteration 
+          + " with " + currentInputName);
+    }
+    currentOutput = new RecordWriter(fileNameAtN(currentIteration));
+    if (iterationsToKeep > 0 && currentIteration > iterationsToKeep) {
+      File toremove =
+        new File(fileNameAtN(currentIteration - iterationsToKeep));
+      toremove.delete();      
+      LOG.info("Remove " + toremove.getAbsolutePath());
+    }
+  }
+
+  private String fileNameAtN(int n) {
+    return outputDir + File.separator + Integer.toString(n) + ".txt.gz";
+  }
+
+  @Override
+  public int rewind(){
+    currentIteration++;
+    try {
+      startIteration();
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException("IOException while starting new iteration");
+    }
+    return currentIteration;
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return new OnDiskDataSource.DataIterator<T>(this);
+  }
+
+  public void close() throws IOException {
+    if (currentOutput != null) {
+      if (currentData != null)
+        currentOutput.add(ju.toJson(currentData));
+      currentInput.close();
+      currentOutput.close();
+    }
+  }
+
+  public static class DataIterator<T> implements Iterator<T> {
+    private OnDiskDataSource<T> parent = null;
+
+    public DataIterator(OnDiskDataSource<T> parent) {
+      this.parent = parent;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void getCurrentData() {
+      try {
+        if (parent.currentInput.next()) {
+          parent.currentData = (T) parent.ju.fromJson(
+              parent.currentInput.value(),
+              parent.payloadClass);
+          if (parent.currentData == null)
+            LOG.info("null from: " + parent.currentInput.value());
+        } else {
+          parent.currentData = null;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new RuntimeException("IOException while reading data " +
+            parent.currentInput.numRead());
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      try {
+        if (parent.currentData != null) { 
+          parent.currentOutput.add(parent.ju.toJson(parent.currentData));
+        }
+        getCurrentData();
+      } catch (IOException e) {
+        throw new RuntimeException("IOException while writing data " +
+            parent.currentInput.numRead());
+      }
+      return parent.currentData != null;
+    }
+
+    @Override
+    public T next() {
+      return parent.currentData;
+    }
+
+    @Override
+    public void remove() {
+      throw new RuntimeException("remove() not implemented.");
+    }
+
+  }
+}

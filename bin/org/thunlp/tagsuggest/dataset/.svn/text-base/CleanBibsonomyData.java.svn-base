@@ -1,0 +1,56 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class CleanBibsonomyData implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.parseAndCheck(args);
+    
+    JsonUtil J = new JsonUtil();
+    
+    Map<Long, List<String>> data = new Hashtable<Long, List<String>>();
+    RecordReader reader = new RecordReader(flags.getString("input"));
+    while (reader.next()) {
+      Post p = J.fromJson(reader.value(), Post.class);
+      long time = p.getTimestamp();
+      List<String> lines = data.get(time);
+      if (lines == null) {
+        lines = new LinkedList<String>();
+        data.put(time, lines);
+      }
+      if (lines.size() < 100) {
+        lines.add(reader.value());
+      }
+    }
+    int numInput = reader.numRead();
+    reader.close();
+    
+    LOG.info("Get " + data.size() + " results from " + numInput);
+    
+    RecordWriter writer = new RecordWriter(flags.getString("output"));
+    for (Entry<Long, List<String>> e : data.entrySet()) {
+      for (String line : e.getValue())
+        writer.add(Long.toString(e.getKey()), line);
+    }
+    writer.close();
+  }
+  
+}

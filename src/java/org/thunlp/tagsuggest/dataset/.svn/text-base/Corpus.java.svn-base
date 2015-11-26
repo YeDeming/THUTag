@@ -1,0 +1,113 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+/**
+ * 语料库
+ * 
+ * @author He Weipeng
+ */
+public class Corpus {
+	public static final String ATTR_FILE = "attr.xml";
+	public static final String PROP_TOTAL = "total";
+	public static final String PROP_NAME = "name";
+	
+	private int total;
+	private String name;
+	private Article[] article;
+
+	/**
+	 * 载入一个语料库
+	 * @param dir 语料库所在的目录
+	 * @throws IOException
+	 */
+	public Corpus(File dir) throws IOException {
+		FileInputStream in = new FileInputStream(new File(dir, ATTR_FILE));
+		Properties p = new Properties();
+		p.loadFromXML(in);
+		in.close();
+		total = Integer.parseInt(p.getProperty(PROP_TOTAL));
+		name = p.getProperty(PROP_NAME);
+		
+		article = new Article[total];
+		
+		for (int i = 0; i < total; i++) {
+			try {
+				article[i] = Article.getArticle(new File(dir, i + ".xml"));
+				article[i].setIndex(i);
+				article[i].setCorpusName(getName());
+				if(i % 1000 == 0){
+					System.out.println("import corpus "+i+" lines");
+				}
+			}
+			catch (ParseException e) {
+				System.out.println("Parseexception happen in "+i+" lines");
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public int getFreqInDoc(String word, int docIndex) {
+		return getFreqInDoc(word, getArticle(docIndex));
+	}
+	
+	public int getFreqInDoc(String word, Article article) {
+		return article.getFrequency(word);
+	}
+	
+	public int numOfDocsContaining(String word) {
+		int c = 0;
+		for (int i = 0; i < total; i++) {
+			if (getArticle(i).getFrequency(word) > 0) {
+				c++;
+			}
+		}
+		
+		return c;
+	}
+	
+	public int firstOccurence(String word, int docIndex) {
+		return article[docIndex].toString().indexOf(word);
+	}
+	
+	public double firstOccurenceRelative(String word, int docIndex) {
+		int fo = firstOccurence(word, docIndex);
+		if (fo < 0) {
+			return -1.0;
+		}
+		else {
+			return (double) fo / (double) article[docIndex].getSize();
+		}
+	}
+	
+	public double TF_IDF(String word, Article a) {
+		int f = getFreqInDoc(word, a);
+		if (f == 0) {
+			return 0.0;
+		}
+		else {
+			int n = numOfDocsContaining(word);
+			return (double) f / (double) a.getSize()
+					* -Math.log((double) n / (double) total);
+		}
+	}
+	
+	public double TF_IDF(String word, int docIndex) {
+		return TF_IDF(word, getArticle(docIndex));
+	}
+	
+	public Article getArticle(int index) {
+		return article[index % article.length];
+	}
+	
+	public int getSize() {
+		return total;
+	}
+	
+	public String getName() {
+		return name;
+	}
+}

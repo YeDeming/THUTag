@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+
+	<context-param>
+		<param-name>configstring</param-name>
+		<param-value>num_tags=10;lang=chinese;singlechinese=true;chineseonly=true;indexpath=/global/shared/transfer/sxc/blogs.tam.index</param-value>
+	</context-param>
+	<context-param>
+		<param-name>modelpath</param-name>
+		<param-value>org.thunlp.tagsuggest.contentbase.TFIDFTagSuggest:0.2:/publicdata/blogs.tfidf,org.thunlp.tagsuggest.contentbase.TAMTagSuggest:0.6:/publicdata/demo.tam,org.thunlp.tagsuggest.contentbase.TagLdaTagSuggest:0.2:/publicdata/taglda.model</param-value>
+	</context-param>
+
+
+	<description>
+      TagSuggestDemoServer
+    </description>
+	<display-name>TagSuggestDemoServer</display-name>
+
+	<servlet>
+		<servlet-name>TagSuggestServlet</servlet-name>
+		<servlet-class>org.thunlp.tagsuggest.service.TagSuggestServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>TagSuggestServlet</servlet-name>
+		<url-pattern>/servlet</url-pattern>
+	</servlet-mapping>
+	
+	 <servlet>
+    <servlet-name>BrowseTAMServlet</servlet-name>
+    <servlet-class>org.thunlp.tagsuggest.service.BrowseTAMServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>BrowseTAMServlet</servlet-name>
+    <url-pattern>/browse</url-pattern>
+  </servlet-mapping>
+</web-app>

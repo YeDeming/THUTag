@@ -1,0 +1,345 @@
+package org.thunlp.tagsuggest.train;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.GzipTextFileReader;
+import org.thunlp.io.IoUtils;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.TextFileWriter;
+import org.thunlp.io.IoUtils.LineMapper;
+import org.thunlp.misc.AnyDoublePair;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.Flags;
+import org.thunlp.misc.SlidingWindowCounter;
+import org.thunlp.misc.StringPair;
+import org.thunlp.misc.StringUtil;
+import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tagsuggest.common.LegacyFeatureExtractor;
+import org.thunlp.tagsuggest.common.ModelTrainer;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.contentbase.FeatureDrivenTagSuggest.FeatureInfo;
+import org.thunlp.text.Lexicon;
+import org.thunlp.text.Lexicon.Word;
+import org.thunlp.tool.GenericTool;
+
+public class TrainFDT implements GenericTool, ModelTrainer {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  private Properties config = null;
+  private int numTopPairs = 50000;
+  JsonUtil J = new JsonUtil();
+  private LegacyFeatureExtractor extractor = null;
+  private String fold = "";
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.add("config");
+    flags.parseAndCheck(args);
+    config = ConfigIO.configFromString(flags.getString("config"));
+    numTopPairs = Integer.parseInt(
+        config.getProperty("num_top_pairs", "50000"));
+    extractor = new LegacyFeatureExtractor(config);
+    train(new File(flags.getString("input")), flags.getString("output"));
+  }
+
+  public void train(File data, String modelPath) throws IOException {
+    // Training of FDT consists of 4 steps: clean, make lexicon, count pairs,
+    // select top pairs as the result.
+    // First we create directories and files for training.
+    File workingDir = new File(modelPath + ".working");
+    workingDir.mkdir();
+    File modelDir = new File(modelPath);
+    modelDir.mkdir();
+    File cleaned = new File(workingDir, "cleaned");
+
+    File featureLexFile = new File(modelDir, "features.lex");
+    File tagLexFile = new File(modelDir, "tag.lex");
+    File parametersFile = new File(modelDir, "parameters");
+
+    // Then, we perform the steps in sequence.
+    cleanPost(data, cleaned);
+    makeLexicons(cleaned, featureLexFile, tagLexFile);
+    countPairs(cleaned, parametersFile, featureLexFile, tagLexFile);
+  }
+  
+  private void cleanPost(File input, File output) throws IOException {
+    if (output.exists()) {
+      LOG.info("found previous cleaned data.");
+      return;
+    }
+
+    IoUtils.mapGzipLines(input, output, new LineMapper() {
+      private Set<String> cleanedTags = new HashSet<String>();
+     
+      @Override
+      public String map(String line) {
+        Post p = null;
+        try {
+          p = J.fromJson(line, Post.class);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        if (!accept(p)) {
+          return null;
+        }
+        String [] features = extractor.extractFeatures(p);
+        p.setContent(StringUtil.join(features, " "));
+        cleanedTags.clear();
+        extractor.cleanTags(p.getTags(), cleanedTags);
+        p.setTags(cleanedTags);
+        try {
+          return J.toJson(p);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+          return null;
+        }
+      }
+      
+    }, 1000);
+  }
+
+  public boolean accept(Post p) {
+    return !p.getExtras().equals(fold);
+  }
+  
+  public void makeLexicons(File input, File wordLexFile, File tagLexFile)
+  throws IOException {
+    if (wordLexFile.exists() && tagLexFile.exists()) {
+      LOG.info("found existing lexicons.");
+      return;
+    }
+    GzipTextFileReader r = new GzipTextFileReader(input);
+    int n = 0;
+    Lexicon wordLex = new Lexicon();
+    Lexicon tagLex = new Lexicon();
+    String line;
+    while ((line = r.readLine()) != null) {
+      Post p = J.fromJson(line, Post.class);
+      // Already cleaned by previous MR.
+      String [] features = p.getContent().split(" ");
+      wordLex.addDocument(features);
+      tagLex.addDocument(p.getTags().toArray(new String[0]));
+      if (n % 1000 == 0) {
+        LOG.info("cleaned " + n);
+      }
+      n++;
+    }
+    r.close();
+
+    wordLex = this.removeLowDfWords(
+        wordLex,
+        Integer.parseInt(config.getProperty("min_word_df", "5")),
+        Integer.parseInt(config.getProperty("min_post_df", "2")),
+        Integer.parseInt(config.getProperty("min_user_df", "5")),
+        Integer.parseInt(config.getProperty("min_topic_df", "5"))
+    );
+    tagLex = tagLex.removeLowDfWords( 
+        Integer.parseInt(config.getProperty("min_tag_df", "5")));
+
+    wordLex.saveToFile(wordLexFile);
+    tagLex.saveToFile(tagLexFile);
+  }
+  
+  public Lexicon removeLowDfWords(
+      Lexicon l, int minDf, int minPostDf, int minUserDf, int minTopicDf) {
+    int id = 0;
+    Hashtable<Integer, Integer> translation = new Hashtable<Integer, Integer>();
+    for (int i = 0 ; i < l.getSize(); i++) {
+      Word w = l.getWord(i);
+      if (w == null)
+        continue;
+      if (w.getName().startsWith("#")) {
+        if (w.getDocumentFrequency() > minPostDf) {
+          translation.put(w.getId(), id);
+          ++id;
+        }
+      } else if (w.getName().startsWith("@")) {
+        if (w.getDocumentFrequency() > minUserDf) {
+          translation.put(w.getId(), id);
+          ++id;
+        }
+      } else if (w.getName().startsWith("&")) {
+        if (w.getDocumentFrequency() > minTopicDf) {
+          translation.put(w.getId(), id);
+          ++id;
+        }
+      }else {
+        if (w.getDocumentFrequency() > minDf) {
+          translation.put(w.getId(), id);
+          ++id;
+        }
+      }
+    }
+    return l.map(translation);
+  }
+
+  public void countPairs(File input, File output,
+      File wordLexFile, File tagLexFile) throws IOException {
+    LOG.info("counting pairs.");
+    int minDf = Integer.parseInt(config.getProperty("mindf", "5"));
+
+    Lexicon wordLex = new Lexicon(wordLexFile);
+    Lexicon tagLex = new Lexicon(tagLexFile);
+    
+    SlidingWindowCounter<StringPair> counter = 
+      new SlidingWindowCounter<StringPair>(minDf, numTopPairs * 50);
+    countWordTagPairs(input, wordLex, tagLex, minDf, counter);
+    
+    LOG.info("Compute MI for " + counter.size() + " pairs");
+    List<WordTagPair> mivalues = new ArrayList<WordTagPair>();
+    for (Entry<StringPair, Long> e : counter) {
+      WordTagPair wtp = new WordTagPair();
+      wtp.word = e.getKey().first;
+      wtp.tag = e.getKey().second;
+      // Compute mutual information.
+      double nwt = e.getValue();
+      double nw = wordLex.getWord(wtp.word).getDocumentFrequency();
+      double nt = tagLex.getWord(wtp.tag).getDocumentFrequency();
+      double nd = wordLex.getNumDocs();
+      wtp.weight = computeMutualInformation(nwt, nw, nt, nd);
+      mivalues.add(wtp);
+    }
+    LOG.info("Sort " + mivalues.size() + " MI values "+ counter.size());
+    Collections.sort(mivalues);
+    
+    LOG.info("Convert the feature-tag pairs to FeatureInfo lists");
+    Map<String, FeatureInfo> theta = new Hashtable<String, FeatureInfo>();
+    int n = 0;
+    for (WordTagPair p : mivalues) {
+      FeatureInfo fi = theta.get(p.word);
+      if (fi == null) {
+        fi = new FeatureInfo();
+        fi.name = p.word;
+        theta.put(p.word, fi);
+      }
+      fi.tags.add(new AnyDoublePair<String>(p.tag, p.weight));
+      n++;
+      if (n > numTopPairs) {
+        break;
+      }
+    }
+
+    LOG.info("Normalize the tags' weight to features, and sort the tags");
+    for (Entry<String, FeatureInfo> e : theta.entrySet()) {
+      FeatureInfo fi = e.getValue();
+      double norm = 0;
+      for (AnyDoublePair<String> t : fi.tags) {
+        if (Math.abs(t.second) > norm) {
+          norm = Math.abs(t.second);
+        }
+      }
+      for (AnyDoublePair<String> t : fi.tags) {
+        t.second = t.second / norm;
+      }
+      fi.weight = norm;
+      Collections.sort(fi.tags, new Comparator<AnyDoublePair<String>>() {
+        public int compare(AnyDoublePair<String> o1, AnyDoublePair<String> o2) {
+          return Double.compare(Math.abs(o2.second), Math.abs(o1.second));
+        }
+      });
+    }
+
+    LOG.info("Output the theta file");
+    TextFileWriter w = new TextFileWriter(output);
+    for (Entry<String, FeatureInfo> e : theta.entrySet()) {
+      w.writeLine(e.getValue().toString());
+    }
+  }
+  
+  private double computeMutualInformation(
+      double nwt, double nw, double nt, double nd) {
+    double [] terms = {
+        nwt / nd * Math.log(nwt / nw / nt * nd),
+        nw == nwt ? 0 : 
+          (nw - nwt) / nd * Math.log((nw - nwt) / nw / (nd - nt) * nd),
+        nt == nwt ? 0 :
+          (nt - nwt) / nd * Math.log((nt - nwt) / (nd - nw) / nt * nd),
+        (nd-nw-nt+nwt) == 0 ? 0 :
+          (nd-nw-nt+nwt)/nd * Math.log((nd-nw-nt+nwt)/(nd-nw)/(nd-nt)*nd)
+    };
+    double s = terms[0] + terms[1] + terms[2] + terms[3];
+    if (terms[1] + terms[2] > terms[0] + terms[3])
+      s = -s;  
+    return s;
+  }
+  
+  private void countWordTagPairs(
+      File input, Lexicon wordLex, Lexicon tagLex, int minDf, 
+       Counter<StringPair> counter) throws IOException {
+    Set<String> wordSet = new HashSet<String>();
+    Set<String> tags = new HashSet<String>();
+    GzipTextFileReader r = new GzipTextFileReader(input);
+    String line;
+    int n = 0;
+    while ((line = r.readLine()) != null) {
+      Post p = J.fromJson(line, Post.class);
+      String [] words = p.getContent().split(" ");
+      wordSet.clear();
+      wordSet.addAll(Arrays.asList(words));
+      tags.clear();
+      for (String ts : p.getTags()) {
+        Word t = tagLex.getWord(ts);
+        if (t == null || t.getDocumentFrequency() < minDf) {
+          continue;
+        }
+        tags.add(ts);
+      }
+      for (String ws : wordSet) {
+        Word w = wordLex.getWord(ws);
+        if (w == null || w.getDocumentFrequency() < minDf) {
+          continue;
+        }
+        for (String ts : tags) {
+          StringPair sp = new StringPair();
+          sp.first = ws;
+          sp.second = ts;
+          counter.inc(sp, 1);
+        }
+      }
+      if (n % 1000 == 0) {
+        LOG.info("Process " + n + " #pairs:" + counter.size());
+      }
+      n++;
+    }
+    r.close();
+  }
+
+  public static class WordTagPair implements Comparable<WordTagPair>{
+    String word;
+    String tag;
+    double weight;
+
+    public int compareTo(WordTagPair o) {
+      return Double.compare(o.weight, weight);
+    }
+    
+  }
+
+  @Override
+  public void train(String inputPath, String modelPath, Properties config)
+      throws IOException {
+    numTopPairs = Integer.parseInt(
+        config.getProperty("num_top_pairs", "50000"));
+    extractor = new LegacyFeatureExtractor(config);
+    fold = config.getProperty("fold", "");
+    train(new File(inputPath), modelPath);
+  }
+  
+}

@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common
+END
+ThreeMethodTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/ThreeMethodTest.java
+END
+LegacyFeatureExtractor.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/LegacyFeatureExtractor.java
+END
+MyKeyword2.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/MyKeyword2.java
+END
+ThreeMethodKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/ThreeMethodKeyword.java
+END
+TagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/TagSuggest.java
+END
+DoubanPost.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/DoubanPost.java
+END
+MyTag.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/MyTag.java
+END
+TagFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/TagFilter.java
+END
+WordFeatureExtractor.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/WordFeatureExtractor.java
+END
+ModelTrainer.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/ModelTrainer.java
+END
+Post.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/Post.java
+END
+SimpleExtractor.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/SimpleExtractor.java
+END
+ConvertKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/5504/exp/cxx/src/java/org/thunlp/tagsuggest/common/ConvertKeyword.java
+END
+PostSelector.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/PostSelector.java
+END
+FeatureExtractor.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/FeatureExtractor.java
+END
+GenerativeTagSuggest.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/GenerativeTagSuggest.java
+END
+MyKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/MyKeyword.java
+END
+KeywordPost.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/KeywordPost.java
+END
+SparseCounter.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/SparseCounter.java
+END
+ConfigIO.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/common/ConfigIO.java
+END

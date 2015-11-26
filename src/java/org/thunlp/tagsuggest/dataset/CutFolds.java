@@ -1,0 +1,57 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.IOException;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class CutFolds implements GenericTool {
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.add("num_folds");
+    flags.parseAndCheck(args);
+
+    cutFolds(flags.getString("input"), flags.getString("output"),
+        flags.getInt("num_folds"), "Post");
+  }
+
+  public void cutFolds(String inputPath, String outputPath, int numFolds,String dataType)
+  throws IOException {
+    RecordReader input = new RecordReader(inputPath);
+    RecordWriter output = new RecordWriter(outputPath);
+    JsonUtil J = new JsonUtil();
+    int n = 0;
+
+    while (input.next()) {
+    	if(dataType.equals("DoubanPost")){
+	  	      DoubanPost p = J.fromJson(input.value(), DoubanPost.class);
+		      p.setExtras(Integer.toString(n % numFolds));
+		      output.add(J.toJson(p));
+	    }
+	    else if(dataType.equals("Post")){
+	    	 Post p = J.fromJson(input.value(), Post.class);
+		      p.setExtras(Integer.toString(n % numFolds));
+		      output.add(J.toJson(p));
+	    }
+    	else if(dataType.equals("KeywordPost")){
+    		KeywordPost p = J.fromJson(input.value(), KeywordPost.class);
+    		p.setExtras(Integer.toString(n % numFolds));
+		    output.add(J.toJson(p));
+    	}
+      n++;
+    }
+    input.close();
+    output.close();
+  }
+
+}

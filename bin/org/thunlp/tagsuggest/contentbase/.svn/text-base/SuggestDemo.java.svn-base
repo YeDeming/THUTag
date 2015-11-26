@@ -1,0 +1,1374 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.MyTag;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+import org.thunlp.tool.GenericTool;
+
+
+
+public class SuggestDemo implements GenericTool, ActionListener,ListSelectionListener {
+	// for Demo
+	static JFrame frame;
+
+	private JLabel inputHint;
+	private JComboBox modeBox;
+	private int currentMode;
+	private JLabel method1Hint;
+	private JLabel method2Hint;
+	private JComboBox methodBox;
+	private String currentMethod;
+	private JLabel docIdHint;
+	private JTextField docIdInput;
+	private int docId;
+	private JButton inputButton;
+	private JButton nextButton;
+	
+	private JPanel modePanel;
+	
+	private JTextArea inputArea;
+	private JScrollPane inputScroll;
+	private JButton searchButton;
+
+	private JLabel iterHint;
+	private JTextField iterLimit;
+	
+	private JLabel tfidfHint;
+	private JTextField tfidfLimit;
+	
+	private JLabel proHint;
+	private JTextField proLimit;
+	
+	private JPanel iterPanel;
+	
+	private JPanel buttonPanel;
+	
+	
+	private JPanel input;
+	
+	private JList list;
+	private DefaultListModel listModel;
+	private JScrollPane listScroll;
+	
+	private JList secondList;
+	private DefaultListModel secondListModel;
+	//private JTextArea output;
+	private JScrollPane outputScroll;
+	
+	private JTextArea answer;
+	private JScrollPane answerScroll;
+	
+	//private JTextArea hint;
+	private JList hint;
+	private DefaultListModel hintModel;
+	private JScrollPane hintScroll;
+	
+	private JPanel outputPanel;
+	
+	private JPanel basicPanel;
+	
+	// for data
+	private BufferedReader smt_test;
+	private BufferedReader second_test;
+	private MyTag smt_tag;
+	private MyTag second_tag;
+	private boolean methodChanged;
+	private JsonUtil J = new JsonUtil();
+	private Set<String> answerSet = new HashSet<String>();
+	
+	// for smt
+
+	private WordFeatureExtractor extractor = null;
+	private Lexicon wordLex = null;
+
+	private Properties config = new Properties();
+	private static List<WeightString> EMPTY_SUGGESTION = new LinkedList<WeightString>();
+
+	private HashMap<Integer, String> bookMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> idMap = new HashMap<String, Integer>();
+	private HashMap<Integer, String> bookTagMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> tagIdMap = new HashMap<String, Integer>();
+
+	private HashMap<String, Integer> df = new HashMap<String, Integer>();
+
+	private HashMap<Integer, HashMap<Integer, Double>> proTable = new HashMap<Integer, HashMap<Integer, Double>>();
+	private HashMap<Integer, HashMap<Integer, Double>> inverseTable = new HashMap<Integer, HashMap<Integer,Double>>();
+	
+	private HashMap<Integer, HashMap<Integer, Double>> record = new HashMap<Integer, HashMap<Integer,Double>>();
+	private HashMap<Integer, Double> wordTfidf = new HashMap<Integer, Double>();
+
+	private HashMap<Integer, HashMap<Integer, Double>> LDA = new HashMap<Integer, HashMap<Integer,Double>>();
+	
+	Counter<String> termFreq = new Counter<String>();
+	
+	// for tam
+	private TagAllocationModel tamModel;
+	private int numTags = 5;
+	private int numSamples = 100;
+	
+	// for knn
+	
+	
+	// for naive_bayes
+	
+	
+	// for crm
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					SuggestDemo window = new SuggestDemo();
+					window.frame.setVisible(true);
+					window.frame.setLocationRelativeTo(null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	@Override
+	public void run(String[] args) throws Exception {
+		SuggestDemo window = new SuggestDemo();
+		window.frame.setVisible(true);
+		window.frame.setLocationRelativeTo(null);
+	}
+
+	/**
+	 * Create the application
+	 */
+	public SuggestDemo() {
+
+		createContents();
+
+		try {
+			// Read book.vcb
+			String bookFile = "book.vcb";
+			BufferedReader book = new BufferedReader(new InputStreamReader(
+					new FileInputStream(bookFile), "UTF-8"));
+			String bookLine;
+			while ((bookLine = book.readLine()) != null) {
+				String[] datas = bookLine.split(" ");
+				bookMap.put(Integer.parseInt(datas[0]), datas[1]);
+				idMap.put(datas[1], Integer.parseInt(datas[0]));
+				df.put(datas[1], Integer.parseInt(datas[2]));
+			}
+			book.close();
+
+			// Read bookTag.vcb
+			String tagFile = "bookTag.vcb";
+			BufferedReader bookTag = new BufferedReader(new InputStreamReader(
+					new FileInputStream(tagFile), "UTF-8"));
+			String tagLine;
+			while ((tagLine = bookTag.readLine()) != null) {
+				String[] datas = tagLine.split(" ");
+				bookTagMap.put(Integer.parseInt(datas[0]), datas[1]);
+				tagIdMap.put(datas[1], Integer.parseInt(datas[0]));
+				// tagCountMap.put(datas[1], Integer.parseInt(datas[2]));
+			}
+			bookTag.close();
+
+			// Read *.t3.final
+			/*
+			 * File dir = new File(modelPath); Filter filter = new
+			 * Filter("t3.final"); String files[] = dir.list(filter);
+			 * if(files.length == 0){
+			 * System.out.println("*.t3.final not exist");
+			 * LOG.info("*.t3.final not exist"); }
+			 */
+			File dir = new File(".");
+			Filter filter = new Filter("t1.5");
+			String files[] = dir.list(filter);
+			if (files.length == 0) {
+				System.out.println("*.t1.5 not exist");
+			}
+			BufferedReader pro = new BufferedReader(new InputStreamReader(
+					new FileInputStream(files[0]), "UTF-8"));
+			int id = 0;
+			String proLine;
+			while ((proLine = pro.readLine()) != null) {
+				String[] data = proLine.split(" ");
+				if (data.length != 3)
+					continue;
+				int first = Integer.parseInt(data[0]);
+				int second = Integer.parseInt(data[1]);
+				double probability = Double.parseDouble(data[2]);
+				if (first == 0 || second == 0 || (probability < 0.01)) {
+					continue;
+				}
+				if (proTable.containsKey(first)) {
+					proTable.get(first).put(second, probability);
+				} else {
+					HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+					tmp.put(second, probability);
+					proTable.put(first, tmp);
+				}
+			}
+			pro.close();
+
+			
+			
+			// Read ti.fianl
+			Filter filter2 = new Filter("cxx.ti.final");
+			String files2[] = dir.list(filter2);
+			if(files2.length == 0){
+				//output.append("ti.final not exist\n");
+				System.out.println("*.ti.final not exist");
+			}
+			else{
+				BufferedReader inverse = new BufferedReader(
+						new InputStreamReader(new FileInputStream(files2[0]),"UTF-8"));
+				String line;
+				while((line = inverse.readLine()) != null){
+					String[] data = line.split(" ");
+					if(data.length != 3) continue;
+					int first = Integer.parseInt(data[0]);
+					int second = Integer.parseInt(data[1]);
+					double probability = Double.parseDouble(data[2]);
+					if(first == 0 || second == 0 || (probability < 0.01)){
+						continue;
+					}
+					if(inverseTable.containsKey(first)){
+						inverseTable.get(first).put(second, probability);
+					}
+					else{
+						HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+						tmp.put(second, probability);
+						inverseTable.put(first, tmp);
+					}
+				}
+				inverse.close();
+			}
+			
+			
+			File cachedWordLexFile = new File("wordlex");
+			if (cachedWordLexFile.exists()) {
+				wordLex = new Lexicon();
+				wordLex.loadFromFile(cachedWordLexFile);
+			} else {
+				answer.setText("The dictionary should contain wordlex");
+			}
+			config.setProperty("isSample", "true");
+			config.setProperty("model", "book.model");
+			config.setProperty("size", "100000");
+			config.setProperty("fromDouban", "true");
+			config.setProperty("minwordfreq", "10");
+			config.setProperty("mintagfreq", "10");
+			//config.setProperty("stopword", "/home/cxx/workspace/cxx/chinese_stop_word.txt");
+			extractor = new WordFeatureExtractor(config);
+
+			// for TAM
+			FileInputStream input = new FileInputStream("model.0.gz");
+			tamModel = new TagAllocationModel(input);
+			input.close();
+			tamModel.setLocked(true);
+			
+			// for data
+			smt_test = new BufferedReader(new InputStreamReader(
+					new FileInputStream("smt_test"), "UTF-8"));
+			second_test = new BufferedReader(new InputStreamReader(
+					new FileInputStream("tam_test"), "UTF-8"));
+			methodChanged = false;
+		} catch (IOException e) {
+			answer.setText("The dictionary should contain book.vcb , bookTag.vcb,*.t1.5,*.ti.final,book.model");
+			e.printStackTrace();
+		}
+	}
+
+	public Properties getProperties() {
+		return config;
+	}
+
+	/**
+	 * Initialize the contents of the frame
+	 */
+	private void createContents() {
+		frame = new JFrame();
+		frame.setTitle("TargetSuggestDemo");
+		frame.setBounds(100, 100, 800, 600);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		inputHint = new JLabel();
+		inputHint.setText("Input:");
+		String modes[] = {"input mode","observe mode"};
+		currentMode = 0;
+		modeBox = new JComboBox(modes);
+		modeBox.setEditable(false);
+		modeBox.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				modeBoxAction(e);
+			}
+		});
+		
+		method1Hint = new JLabel();
+		method1Hint.setText("            method 1:smt");
+		
+		method2Hint = new JLabel();
+		method2Hint.setText("            method 2:");
+		
+		String methods[] = {"tam","knn","naive_bayes","crm"};
+		currentMethod = methods[0];
+		methodBox = new JComboBox(methods);
+		methodBox.setEditable(false);
+		methodBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				methodBoxAction(e);
+			}
+		});
+		
+		docIdHint = new JLabel();
+		docIdHint.setText("        doc id(1-17678):");
+		docIdInput = new JTextField(5);
+		docIdInput.setText("1");
+		docIdInput.setEditable(false);
+		docId = 0;
+		
+		inputButton = new JButton("go");
+		inputButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				inputActionPerformed(evt);
+			}
+		});
+		inputButton.setEnabled(false);
+		
+		nextButton = new JButton("next");
+		nextButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				nextActionPerformed(e);
+			}
+		});
+		nextButton.setEnabled(false);
+		
+		modePanel = new JPanel(new GridLayout(1,9));
+		modePanel.add(inputHint);
+		modePanel.add(modeBox);
+		modePanel.add(method1Hint);
+		modePanel.add(method2Hint);
+		modePanel.add(methodBox);
+		modePanel.add(docIdHint);
+		modePanel.add(docIdInput);
+		modePanel.add(inputButton);
+		modePanel.add(nextButton);
+		//numPanel = new JPanel(new FlowLayout());
+		//numPanel.add(inputHint);
+		//numPanel.add(inputNum);
+		
+		inputArea = new JTextArea(15, 10);
+		inputArea.setLineWrap(true);
+		inputArea.setFont(new Font(Font.DIALOG,Font.PLAIN,20));
+		inputScroll = new JScrollPane(inputArea);
+		inputScroll
+				.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		tfidfHint = new JLabel();
+		tfidfHint.setText("Tfidf Limit");
+		tfidfLimit = new JTextField(10);
+		tfidfLimit.setText("1.00");
+		
+		iterHint = new JLabel();
+		iterHint.setText("Iteration times:");
+		iterLimit = new JTextField(10);
+		iterLimit.setText("0");
+		
+		proHint = new JLabel();
+		proHint.setText("Edge Limit");
+		proLimit = new JTextField(10);
+		proLimit.setText("0");
+
+		searchButton = new JButton("Demo");
+		searchButton.addActionListener(this);
+
+		iterPanel = new JPanel(new GridLayout(6,1));
+		iterPanel.add(iterHint);
+		iterPanel.add(iterLimit);
+		iterPanel.add(tfidfHint);
+		iterPanel.add(tfidfLimit);
+		iterPanel.add(proHint);
+		iterPanel.add(proLimit);
+		
+		buttonPanel = new JPanel(new BorderLayout());
+		buttonPanel.add(iterPanel,BorderLayout.NORTH);
+		buttonPanel.add(searchButton,BorderLayout.CENTER);
+		
+		input = new JPanel(new BorderLayout());
+		input.add(modePanel, BorderLayout.NORTH);
+		input.add(inputScroll, BorderLayout.CENTER);
+		input.add(buttonPanel, BorderLayout.EAST);
+		input.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
+
+		listModel = new DefaultListModel();
+		//listModel.addElement("SMT Tags:");
+		list = new JList(listModel);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setSelectionBackground(new Color(255, 182, 193));
+		list.addListSelectionListener(this);
+		listScroll = new JScrollPane(list);
+		listScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		secondListModel = new DefaultListModel();
+		secondList = new JList(secondListModel);
+		secondList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		secondList.setSelectionBackground(new Color(255, 182, 193));
+		secondList.addListSelectionListener(this);
+		outputScroll = new JScrollPane(secondList);
+		outputScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		answer = new JTextArea(10, 10);
+		answer.setBackground(Color.WHITE);
+		answer.setForeground(Color.BLACK);
+		answer.setEditable(false);
+		answer.setLineWrap(true);
+		answer.setFont(new Font(Font.DIALOG,Font.PLAIN,16));
+		answerScroll = new JScrollPane(answer);
+		answerScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+
+		/*
+		hint = new JTextArea(10, 10);
+		hint.setBackground(Color.WHITE);
+		hint.setForeground(Color.BLACK);
+		hint.setEditable(false);
+		hint.setLineWrap(true);
+		//hint.setFont(new Font(Font.DIALOG,Font.PLAIN,20));
+		hintScroll = new JScrollPane(hint);
+		hintScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		*/
+		hintModel = new DefaultListModel();
+		//listModel.addElement("SMT Tags:");
+		hint = new JList(hintModel);
+		hint.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		hint.addListSelectionListener(this);
+		hintScroll = new JScrollPane(hint);
+		hintScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		outputPanel = new JPanel(new GridLayout(1,4));
+		outputPanel.add(listScroll);
+		outputPanel.add(outputScroll);
+		outputPanel.add(hintScroll);
+		outputPanel.add(answerScroll);
+		
+		basicPanel = new JPanel(new BorderLayout());
+		basicPanel.add(input, BorderLayout.NORTH);
+		basicPanel.add(outputPanel, BorderLayout.CENTER);
+
+		frame.getRootPane().setDefaultButton(searchButton);
+		frame.getContentPane().add(basicPanel);
+	}
+
+	public void modeBoxAction(ActionEvent e){
+		currentMode = modeBox.getSelectedIndex();
+		if(currentMode == 0){
+			docIdInput.setEditable(false);
+			inputButton.setEnabled(false);
+			nextButton.setEnabled(false);
+			inputArea.setEditable(true);
+			searchButton.setEnabled(true);
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			secondList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		}
+		else{
+			docIdInput.setEditable(true);
+			inputButton.setEnabled(true);
+			nextButton.setEnabled(false);
+			inputArea.setEditable(false);
+			searchButton.setEnabled(false);
+			list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			secondList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		}
+	}
+	
+	public void methodBoxAction(ActionEvent e){
+		currentMethod = (String)methodBox.getSelectedItem();
+		answer.setText(currentMethod+"_test");
+		methodChanged = true;
+	}
+	
+	public void inputActionPerformed(ActionEvent evt) {
+		int newDocId = 1;
+		try{
+			newDocId = Integer.parseInt(docIdInput.getText());
+			if(newDocId < 1 || newDocId > 17678){
+				newDocId = 1;
+				answer.setText("doc id error!Use default value 1\n");
+				return;
+			}
+		}catch(NumberFormatException eve){
+			newDocId = 1;
+			answer.setText("doc id error!Use default value 1\n");
+			return;
+		}
+		nextButton.setEnabled(true);
+		if(docId == newDocId){
+			if(methodChanged == false){
+				return;
+			}
+			else{
+				methodChanged = false;
+				try {
+					int dis = newDocId;
+					second_test.close();
+					second_test = new BufferedReader(new InputStreamReader(
+							new FileInputStream(currentMethod+"_test"), "UTF-8"));
+					int counter = 0;
+					while(counter != dis -1){
+						counter ++;
+						second_test.readLine();
+					}
+					String title = smt_tag.getTitle();
+					String content = smt_tag.getContent();
+					answerSet.clear();
+					answerSet = smt_tag.getAnswer();
+					counter = 0;
+					String secondTitle;
+					boolean find = false;
+					while(counter < 30){
+						second_tag = J.fromJson(second_test.readLine(), MyTag.class);
+						secondTitle = second_tag.getTitle();
+						if(title.equals(secondTitle)){
+							find = true;
+							break;
+						}
+						counter ++;
+					}
+					if(find == true){
+						List<WeightString> results = second_tag.getSuggestTags();
+						
+						secondListModel.clear();
+						for(int i = 0; i < results.size() && i < 10; i++){
+							secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+							if(answerSet.contains(results.get(i).text.toLowerCase())){
+								secondList.addSelectionInterval(i, i);
+							}
+						}
+					}else{
+						answer.setText("id not found!");
+					}
+					docId = newDocId;
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if(docId < newDocId){
+			try {
+				int dis = newDocId - docId;
+				int counter = 0;
+				while(counter != dis - 1){
+					counter ++;
+					smt_test.readLine();
+					second_test.readLine();
+				}
+				if(methodChanged == true){
+					methodChanged = false;
+					second_test.close();
+					second_test = new BufferedReader(new InputStreamReader(
+							new FileInputStream(currentMethod+"_test"), "UTF-8"));
+					while(counter != newDocId - 1){
+						counter ++;
+						second_test.readLine();
+					}
+				}
+				smt_tag = J.fromJson(smt_test.readLine(), MyTag.class);
+				String title = smt_tag.getTitle();
+				String content = smt_tag.getContent();
+				answerSet.clear();
+				answerSet = smt_tag.getAnswer();
+				counter = 0;
+				String secondTitle;
+				boolean find = false;
+				while(counter < 30){
+					second_tag = J.fromJson(second_test.readLine(), MyTag.class);
+					secondTitle = second_tag.getTitle();
+					if(title.equals(secondTitle)){
+						find = true;
+						break;
+					}
+					counter ++;
+				}
+				if(find == true){
+					inputArea.setText(title+"\n");
+					inputArea.append(content);
+					List<WeightString> tags = smt_tag.getSuggestTags();
+					listModel.clear();
+					for(int i = 0; i < tags.size() && i < 10; i++){
+						listModel.insertElementAt(tags.get(i).text+":"+tags.get(i).weight, i);
+						if(answerSet.contains(tags.get(i).text.toLowerCase())){
+							list.addSelectionInterval(i, i);
+						}
+					}
+					
+					List<WeightString> results = second_tag.getSuggestTags();
+					secondListModel.clear();
+					for(int i = 0; i < results.size() && i < 10; i++){
+						secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+						if(answerSet.contains(results.get(i).text.toLowerCase())){
+							secondList.addSelectionInterval(i, i);
+							
+						}
+					}
+				}else{
+					answer.setText("id not found!");
+				}
+				docId = newDocId;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else{
+			try {
+				int dis = newDocId;
+				smt_test.close();
+				second_test.close();
+				smt_test = new BufferedReader(new InputStreamReader(
+						new FileInputStream("smt_test"), "UTF-8"));
+				second_test = new BufferedReader(new InputStreamReader(
+						new FileInputStream(currentMethod+"_test"), "UTF-8"));
+				int counter = 0;
+				while(counter != dis -1){
+					counter ++;
+					smt_test.readLine();
+					second_test.readLine();
+				}
+				smt_tag = J.fromJson(smt_test.readLine(), MyTag.class);
+				String title = smt_tag.getTitle();
+				String content = smt_tag.getContent();
+				answerSet.clear();
+				answerSet = smt_tag.getAnswer();
+				counter = 0;
+				String secondTitle;
+				boolean find = false;
+				while(counter < 30){
+					second_tag = J.fromJson(second_test.readLine(), MyTag.class);
+					secondTitle = second_tag.getTitle();
+					if(title.equals(secondTitle)){
+						find = true;
+						break;
+					}
+					counter ++;
+				}
+				if(find == true){
+					inputArea.setText(title+"\n");
+					inputArea.append(content);
+					List<WeightString> tags = smt_tag.getSuggestTags();
+					listModel.clear();
+					for(int i = 0; i < tags.size() && i < 10; i++){
+						listModel.insertElementAt(tags.get(i).text+":"+tags.get(i).weight, i);
+						if(answerSet.contains(tags.get(i).text.toLowerCase())){
+							list.addSelectionInterval(i, i);
+						}
+					}
+					List<WeightString> results = second_tag.getSuggestTags();
+					
+					secondListModel.clear();
+					for(int i = 0; i < results.size() && i < 10; i++){
+						secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+						if(answerSet.contains(results.get(i).text.toLowerCase())){
+							secondList.addSelectionInterval(i, i);
+							
+						}
+					}
+				}else{
+					answer.setText("id not found!");
+				}
+				docId = newDocId;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public void nextActionPerformed(ActionEvent evt) {
+		int newDocId = 1;
+		try{
+			newDocId = Integer.parseInt(docIdInput.getText());
+			if(newDocId < 1 || newDocId > 17678){
+				newDocId = 1;
+				answer.setText("doc id error!Use default value 1\n");
+				return;
+			}
+		}catch(NumberFormatException eve){
+			newDocId = 1;
+			answer.setText("doc id error!Use default value 1\n");
+			return;
+		}
+		newDocId ++;
+		docIdInput.setText(""+newDocId);
+		if(newDocId > 17678){
+			answer.setText("doc id error!Use default value 1\n");
+			return;
+		}
+		nextButton.setEnabled(true);
+		if(docId == newDocId){
+			return;
+		}
+		else if(docId < newDocId){
+			try {
+				int dis = newDocId - docId;
+				int counter = 0;
+				while(counter != dis - 1){
+					counter ++;
+					smt_test.readLine();
+					second_test.readLine();
+				}
+				if(methodChanged == true){
+					methodChanged = false;
+					while(counter != newDocId - 1){
+						counter ++;
+						second_test.readLine();
+					}
+				}
+				smt_tag = J.fromJson(smt_test.readLine(), MyTag.class);
+				String title = smt_tag.getTitle();
+				String content = smt_tag.getContent();
+				answerSet.clear();
+				answerSet = smt_tag.getAnswer();
+				counter = 0;
+				String secondTitle;
+				boolean find = false;
+				while(counter < 30){
+					second_tag = J.fromJson(second_test.readLine(), MyTag.class);
+					secondTitle = second_tag.getTitle();
+					if(title.equals(secondTitle)){
+						find = true;
+						break;
+					}
+					counter ++;
+				}
+				if(find == true){
+					inputArea.setText(title+"\n");
+					inputArea.append(content);
+					List<WeightString> tags = smt_tag.getSuggestTags();
+
+					listModel.clear();
+					for(int i = 0; i < tags.size() && i < 10; i++){
+						listModel.insertElementAt(tags.get(i).text+":"+tags.get(i).weight, i);
+						if(answerSet.contains(tags.get(i).text.toLowerCase())){
+							list.addSelectionInterval(i, i);
+						}
+					}
+					List<WeightString> results = second_tag.getSuggestTags();
+
+					secondListModel.clear();
+					for(int i = 0; i < results.size() && i < 10; i++){
+						secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+						if(answerSet.contains(results.get(i).text.toLowerCase())){
+							secondList.addSelectionInterval(i, i);
+							
+						}
+					}
+				}else{
+					answer.setText("id not found!");
+				}
+				docId = newDocId;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}else{
+			try {
+				int dis = newDocId;
+				smt_test.close();
+				second_test.close();
+				smt_test = new BufferedReader(new InputStreamReader(
+						new FileInputStream("smt_test"), "UTF-8"));
+				second_test = new BufferedReader(new InputStreamReader(
+						new FileInputStream(currentMethod+"_test"), "UTF-8"));
+				int counter = 0;
+				while(counter != dis -1){
+					counter ++;
+					smt_test.readLine();
+					second_test.readLine();
+				}
+				smt_tag = J.fromJson(smt_test.readLine(), MyTag.class);
+				String title = smt_tag.getTitle();
+				String content = smt_tag.getContent();
+				answerSet.clear();
+				answerSet = smt_tag.getAnswer();
+				counter = 0;
+				String secondTitle;
+				boolean find = false;
+				while(counter < 30){
+					second_tag = J.fromJson(second_test.readLine(), MyTag.class);
+					secondTitle = second_tag.getTitle();
+					if(title.equals(secondTitle)){
+						find = true;
+						break;
+					}
+					counter ++;
+				}
+				if(find == true){
+					inputArea.setText(title+"\n");
+					inputArea.append(content);
+					List<WeightString> tags = smt_tag.getSuggestTags();
+
+					listModel.clear();
+					for(int i = 0; i < tags.size() && i < 10; i++){
+						listModel.insertElementAt(tags.get(i).text+":"+tags.get(i).weight, i);
+						if(answerSet.contains(tags.get(i).text.toLowerCase())){
+							list.addSelectionInterval(i, i);
+						}
+					}
+					List<WeightString> results = second_tag.getSuggestTags();
+
+					secondListModel.clear();
+					for(int i = 0; i < results.size() && i < 10; i++){
+						secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+						if(answerSet.contains(results.get(i).text.toLowerCase())){
+							secondList.addSelectionInterval(i, i);
+							
+						}
+					}
+				}else{
+					answer.setText("id not found!");
+				}
+				docId = newDocId;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+
+	@Override
+	public void actionPerformed(ActionEvent ae) {
+		// for SMT
+
+		boolean error = false;
+		int limit = 0;
+		try{
+			limit = Integer.parseInt(iterLimit.getText());
+		}catch(NumberFormatException e){
+			limit = 0;
+			answer.setText("Iteration times error!Use default value 0\n");
+			//answerModel.addElement("Iteration times error!Use default value 0");
+			error = true;
+		}
+		double tfidfTop = 1.0;
+		try{
+			tfidfTop = Double.parseDouble(tfidfLimit.getText());
+		}catch (NumberFormatException e) {
+			// TODO: handle exception
+			tfidfTop = 1.0;
+			answer.setText("Tfidf limit error!Use default value 1.0\n");
+			//answerModel.addElement("Tfidf limit error!Use default value 1.0");
+			error = true;
+		}
+		int edgeLimit = 0;
+		try{
+			edgeLimit = Integer.parseInt(proLimit.getText());
+		}catch (NumberFormatException e) {
+			// TODO: handle exception
+			edgeLimit = 0;
+			answer.setText("Pro limit error!Use default value 0\n");
+			//answerModel.addElement("Pro limit error!Use default value 0");
+			error = true;
+		}
+		record.clear();
+		wordTfidf.clear();
+		termFreq.clear();
+		LDA.clear();
+		
+		DoubanPost p = new DoubanPost();
+		p.setContent(inputArea.getText());
+		String[] words = extractor.extract(p);
+		for (String word : words) {
+			if (idMap.containsKey(word))
+				termFreq.inc(word, 1);
+		}
+		Iterator<Entry<String, Long>> iter = termFreq.iterator();
+		HashMap<Integer, Double> proMap = new HashMap<Integer, Double>();
+		double totalScore = 0.0;
+		
+		while (iter.hasNext()) {
+			Entry<String, Long> e = iter.next();
+			String word = e.getKey();
+			double tf = (double) e.getValue() / (double) words.length;
+			// double idf = (double)D/(double)df.get(word);
+			double idf = Math.log((double) wordLex.getNumDocs()
+					/ (double) wordLex.getWord(word).getDocumentFrequency());
+			double tfidf = tf * idf;
+			int id = idMap.get(word);
+			if (proTable.containsKey(id)) {
+				wordTfidf.put(id, tfidf);
+			}
+		}
+		
+		/*
+		while (iter.hasNext()) {
+			Entry<String, Long> e = iter.next();
+			String word = e.getKey();
+			double tf = (double) e.getValue() / (double) words.length;
+			// double idf = (double)D/(double)df.get(word);
+			double idf = Math.log((double) wordLex.getNumDocs() / (double) wordLex.getWord(word).getDocumentFrequency());
+			double tfidf = tf * idf;
+			int id = idMap.get(word);
+			if (proTable.containsKey(id)) {
+				wordTfidf.put(id, tfidf);
+				
+				HashMap<Integer, Double> tmpMap = new HashMap<Integer, Double>();
+				tmpMap.putAll(proTable.get(id));
+				LDA.put(id, tmpMap);
+				
+				
+				for (Entry<Integer, Double> ee : proTable.get(id).entrySet()) {
+					
+					int tagId = ee.getKey();
+					double pro = tfidf * ee.getValue();
+					totalScore += pro;
+					if (proMap.containsKey(tagId)) {
+						double tmp = proMap.get(tagId);
+						tmp += pro;
+						proMap.remove(tagId);
+						proMap.put(tagId, tmp);
+					} else {
+						proMap.put(tagId, pro);
+					}
+					if(record.containsKey(tagId)){
+						record.get(tagId).put(id, tfidf * ee.getValue());
+					}
+					else{
+						HashMap<Integer, Double> temp = new HashMap<Integer, Double>();
+						temp.put(id, tfidf * ee.getValue());
+						record.put(tagId, temp);
+					}
+					
+					int tagId = ee.getKey();
+					if(inverseTable.containsKey(tagId) && inverseTable.get(tagId).containsKey(id)){
+						double pro = inverseTable.get(tagId).get(id);
+						if(LDA.containsKey(id)){
+							LDA.get(id).put(tagId, pro);
+						}
+						else{
+							HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+							tmp.put(tagId, pro);
+							LDA.put(id, tmp);
+						}
+						
+						if (proMap.containsKey(tagId)) {
+							double tmp = proMap.get(tagId);
+							tmp += tfidf * pro;
+							proMap.remove(tagId);
+							proMap.put(tagId, tmp);
+						} else {
+							proMap.put(tagId, tfidf * pro);
+						}
+						
+						if(record.containsKey(tagId)){
+							record.get(tagId).put(id, tfidf * pro);
+						}
+						else{
+							HashMap<Integer, Double> temp = new HashMap<Integer, Double>();
+							temp.put(id, tfidf * pro);
+							record.put(tagId, temp);
+						}
+						
+					}
+					
+					
+				}	
+			}
+		}
+		*/
+		
+		Object [] ans = wordTfidf.entrySet().toArray();
+		Comparator<Object> c = new Comparator<Object>(){
+			public int compare(Object o1, Object o2) {
+			    double d1 = ((Entry<Integer,Double>)o1).getValue();
+			    double d2 = ((Entry<Integer,Double>)o2).getValue();
+			    if(d1 < d2)return 1;
+			    if(d1 == d2)return 0;
+			    else return -1;
+			    }
+			};
+		Arrays.sort(ans,c);
+		int len = (int)((double)ans.length * tfidfTop);
+		for(int i = 0; i < len ; i ++){
+			int id = ((Entry<Integer, Double>)ans[i]).getKey();
+			double tfidf = ((Entry<Integer, Double>)ans[i]).getValue();
+			HashMap<Integer, Double> tmpMap = new HashMap<Integer, Double>();
+			tmpMap.putAll(proTable.get(id));
+			LDA.put(id, tmpMap);
+			
+			Object [] edge = proTable.get(id).entrySet().toArray();
+			Comparator<Object> edgeComparator = new Comparator<Object>(){
+				public int compare(Object o1, Object o2) {
+				    double d1 = ((Entry<Integer, Double>)o1).getValue();
+				    double d2 = ((Entry<Integer, Double>)o2).getValue();
+				    if(d1 < d2)return 1;
+				    if(d1 == d2)return 0;
+				    else return -1;
+				    }
+				};
+			Arrays.sort(edge,edgeComparator);
+			
+			int top = 0;
+			
+			for (Object ee : edge) {
+				top ++;
+				if(edgeLimit != 0 && top > edgeLimit){
+					break;
+				}
+				int tagId = ((Entry<Integer, Double>)ee).getKey();
+				double pro = tfidf * ((Entry<Integer, Double>)ee).getValue();
+				/*
+				if(((Entry<Integer, Double>)ee).getValue() < 0.05){
+					break;
+				}
+				*/
+				totalScore += pro;
+				if (proMap.containsKey(tagId)) {
+					double tmp = proMap.get(tagId);
+					tmp += pro;
+					proMap.remove(tagId);
+					proMap.put(tagId, tmp);
+				} else {
+					proMap.put(tagId, pro);
+				}
+				
+				if(record.containsKey(tagId)){
+					record.get(tagId).put(id, pro);
+				}
+				else{
+					HashMap<Integer, Double> temp = new HashMap<Integer, Double>();
+					temp.put(id, pro);
+					record.put(tagId, temp);
+				}
+			}
+		}
+		
+		/*
+		for(Entry<Integer, HashMap<Integer, Double>> e: invertLDA.entrySet()){
+			double sum = 0.0;
+			for(Entry<Integer, Double> ee: e.getValue().entrySet()){
+				sum += ee.getValue();
+			}
+			for(Entry<Integer, Double> ee: e.getValue().entrySet()){
+				double normalized = ee.getValue() / sum;
+				ee.setValue(normalized);
+			}
+		}
+		*/
+		
+		if(error){
+			answer.append("Environment variable:\n");
+		}
+		else{
+			answer.setText("Environment variable:\n");
+		}
+		
+		//answerModel.addElement("Environment variable:");
+		/*
+		for (Entry<Integer, Double> e : proMap.entrySet()) {
+			e.setValue(e.getValue()/totalScore);
+		}
+		
+		List<WeightString> smtTags = new ArrayList<WeightString>();
+		for (Entry<Integer, Double> e : proMap.entrySet()) {
+			smtTags.add(new WeightString(bookTagMap.get(e.getKey()), e.getValue()));
+		}
+		Collections.sort(smtTags, new Comparator<WeightString>() {
+
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+		
+		for(int i = 0; i < smtTags.size() && i < 10; i++){
+			answer.append(smtTags.get(i).text+":"+smtTags.get(i).weight);
+		}
+		*/
+		for (Entry<Integer, Double> e : proMap.entrySet()) {
+			e.setValue(e.getValue()/totalScore);
+		}
+		
+		double dis = 0.0;
+		int count = 0;
+		HashMap<Integer, Double> tagPro = new HashMap<Integer, Double>();
+		double tagScore = 0.0;
+		do{
+			dis = 0.0;
+			tagPro.clear();
+			if(count + 1 > limit) break;
+			count ++;
+			tagScore = 0.0;
+			for(Entry<Integer, HashMap<Integer, Double>> e : LDA.entrySet()){
+				int id = e.getKey();
+				double tfidf = wordTfidf.get(id);
+				double sum = 0.0;
+				for(Entry<Integer, Double> ee : e.getValue().entrySet()){
+					int tagId = ee.getKey();
+					if(proMap.containsKey(tagId)){
+						double newPro = ee.getValue() * proMap.get(tagId);
+						ee.setValue(newPro);
+						sum += newPro;
+					}
+				}
+				for(Entry<Integer, Double> ee : e.getValue().entrySet()){
+					double normalized = ee.getValue() / sum;
+					ee.setValue(normalized);
+					int tagId = ee.getKey();
+					tagScore += tfidf * normalized;
+					if(tagPro.containsKey(tagId)){
+						double tmp = tagPro.get(tagId);
+						tmp += tfidf * normalized;
+						tagPro.remove(tagId);
+						tagPro.put(tagId, tmp);
+					}
+					else {
+						tagPro.put(tagId, tfidf * normalized);
+					}
+					if(record.containsKey(tagId)){
+						record.get(tagId).put(id, tfidf * normalized);
+					}
+					else{
+						HashMap<Integer, Double> temp = new HashMap<Integer, Double>();
+						temp.put(id, tfidf * normalized);
+						record.put(tagId, temp);
+					}
+				}
+			}
+			for (Entry<Integer, Double> e : tagPro.entrySet()) {
+				e.setValue(e.getValue()/tagScore);
+			}
+			for(Entry<Integer, Double> e:proMap.entrySet()){
+				if(tagPro.containsKey(e.getKey())){
+					dis += Math.pow(tagPro.get(e.getKey()) - e.getValue(), 2.0);
+				}
+			}
+			dis = Math.sqrt(dis);
+			proMap.clear();
+			proMap.putAll(tagPro);
+		}while(dis > 0.0001 && count < 100);
+		
+		List<WeightString> tags = new ArrayList<WeightString>();
+		for (Entry<Integer, Double> e : proMap.entrySet()) {
+			tags.add(new WeightString(bookTagMap.get(e.getKey()), e.getValue()));
+		}
+		Collections.sort(tags, new Comparator<WeightString>() {
+
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+		listModel.clear();
+		for(int i = 0; i < tags.size() && i < 10; i++){
+			listModel.insertElementAt(tags.get(i).text+":"+tags.get(i).weight, i);
+		}
+		/*
+		output.setText("SMT Suggest tags are:\n");
+		for (int i = 0; i < tags.size() && i < 10; i++) {
+			output.append(tags.get(i).text + " " + tags.get(i).weight + ":");
+			int tagId = tagIdMap.get(tags.get(i).text);
+			if(record.containsKey(tagId)){
+				for(Entry<Integer, Double> ee:record.get(tagId).entrySet()){
+					int id = ee.getKey();
+					if(bookMap.containsKey(id) && wordTfidf.containsKey(id)){
+						output.append(bookMap.get(id)+"-"+wordTfidf.get(id)+"-"+proTable.get(id).get(tagId)+" ");
+					}
+				}
+			}
+			output.append("\n");
+		}
+		output.append("\n");
+		*/
+		
+		// for TAM
+		String[] features = extractor.extract(p);
+		Set<String> featureSet = new HashSet<String>();
+		for (String feature : features) {
+			featureSet.add(feature);
+		}
+		List<WeightString> results = new ArrayList<WeightString>();
+
+		HashMap<String, Double> tagWeights = new HashMap<String, Double>();
+		HashMap<String, List<String>> tagsrc = new HashMap<String, List<String>>();
+		double norm = 0;
+		for (String feature : featureSet) {
+			norm += tamModel.prw(feature);
+		}
+		for (String feature : featureSet) {
+			Set<String> ctags = tamModel.getRelatedTags(feature);
+			double prd = tamModel.prw(feature) / norm;
+			for (String tag : ctags) {
+				double ptr = tamModel.ptr(tag, feature);
+				List<String> srcs = tagsrc.get(tag);
+				if (srcs == null) {
+					srcs = new LinkedList<String>();
+					tagsrc.put(tag, srcs);
+				}
+				srcs.add(feature + ":" + String.format("%.3f", ptr));
+				double ptf = ptr * prd * (1 - tamModel.pcm());
+				Double w = tagWeights.get(tag);
+				if (w == null) {
+					w = 0.0;
+				}
+				tagWeights.put(tag, w + ptf);
+			}
+		}
+
+		for (Entry<String, Double> e : tagWeights.entrySet()) {
+			results.add(new WeightString(e.getKey(), e.getValue()));
+		}
+
+		Collections.sort(results, new Comparator<WeightString>() {
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+		});
+		/*
+		 * if (results.size() > numTags) results = results.subList(0, numTags);
+		 */
+		// return results;
+		secondListModel.clear();
+		for(int i = 0; i < results.size() && i < 10; i++){
+			secondListModel.insertElementAt(results.get(i).text+":"+results.get(i).weight, i);
+		}
+		
+		
+		answer.append("Total Documents:"+wordLex.getNumDocs());
+		answer.append("\nCurrent document words:"+words.length);
+		answer.append("\nIteration times:"+count);
+		/*
+		answerModel.addElement("Total Documents:"+wordLex.getNumDocs());
+		answerModel.addElement("\nCurrent document words:"+words.length);
+		answerModel.addElement("\nIteration times:"+count);
+		*/
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource().equals(list)){
+			if(e.getValueIsAdjusting() == false){
+				if(list.getSelectedIndex() != -1){
+					hintModel.clear();
+					String tag = ((String)list.getSelectedValue());
+					String datas[] = tag.split(":");
+					tag = datas[0];
+					int tagId = tagIdMap.get(tag);
+					if(record.containsKey(tagId)){
+						hintModel.addElement("Word-tf-df-tfidf-pro to tag-after Iteration");
+						Object [] ans = record.get(tagId).entrySet().toArray();
+						Comparator<Object> c = new Comparator<Object>(){
+							public int compare(Object o1, Object o2) {
+							    double d1 = ((Entry<Integer,Double>)o1).getValue();
+							    double d2 = ((Entry<Integer,Double>)o2).getValue();
+							    if(d1 < d2)return 1;
+							    if(d1 == d2)return 0;
+							    else return -1;
+							    }
+							};
+						Arrays.sort(ans,c);
+						for(Object s:ans){
+							int id = ((Entry<Integer,Double>)s).getKey();
+							if(bookMap.containsKey(id) && wordTfidf.containsKey(id)){
+								String word = bookMap.get(id);
+								//hint.append(word+"-"+termFreq.get(word)+"-"+wordLex.getWord(word).getDocumentFrequency()+
+								//		"-"+wordTfidf.get(id)+"-"+proTable.get(id).get(tagId)+"-"+LDA.get(id).get(tagId)+"\n");
+								hintModel.addElement(word+"-"+termFreq.get(word)+"-"+wordLex.getWord(word).getDocumentFrequency()+
+										"-"+wordTfidf.get(id)+"-"+proTable.get(id).get(tagId)+"-"+LDA.get(id).get(tagId));
+							}
+						}
+						//hint.append("\n");
+					}
+					
+				}
+			}
+		}
+		else if (e.getSource().equals(hint)) {
+			if(e.getValueIsAdjusting() == false){
+				if(hint.getSelectedIndex() != -1 && hint.getSelectedIndex() != 0){
+					String word = ((String)hint.getSelectedValue());
+					String datas[] = word.split("-");
+					word = datas[0];
+					int id = idMap.get(word);
+					if(proTable.containsKey(id)){
+						answer.setText("The probability table for the word\n");
+						Object [] ans = proTable.get(id).entrySet().toArray();
+						Comparator<Object> c = new Comparator<Object>(){
+							public int compare(Object o1, Object o2) {
+							    double d1 = ((Entry<Integer,Double>)o1).getValue();
+							    double d2 = ((Entry<Integer,Double>)o2).getValue();
+							    if(d1 < d2)return 1;
+							    if(d1 == d2)return 0;
+							    else return -1;
+							    }
+							};
+						Arrays.sort(ans,c);
+						for(Object s:ans){
+							int tagId = ((Entry<Integer,Double>)s).getKey();
+							if(bookTagMap.containsKey(tagId) && record.containsKey(tagId) && record.get(tagId).containsKey(id)){
+								String tag = bookTagMap.get(tagId);
+								answer.append(tag+":"+((Entry<Integer,Double>)s).getValue()+"\n");
+							}
+						}
+					}
+					
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,32 @@
+INTRO
+=====
+
+This is a sample java project, with JUnit test cases. To use it as a start point of your project, follow the instructions below. Before you start, make sure you've already know :
+	1. ant
+	2. junit, if you want to use unit tests to ensure your program is right.
+
+HOW TO USE IT AS A TEMPLATE
+===========================
+
+1. Replace the project's name "startpoint" with your project's name in build.xml ( use Find/Replace )
+
+2. It's done, no step 2
+
+HOW TO USE IT
+=============
+
+Type "ant" : build the whole project, generate XXX.jar and XXX-src.zip in ./build
+
+Type "ant hadoop-jar" : build a single jar for run on cluster, generate XXX-hadoop.jar in ./build/
+
+Type "bin/runclass YOUR_CLASS_NAME" : run YOUR_CLASS_NAME, it may like "org.thunlp.category.Main"
+
+Type "ant test" : Run all test cases.
+
+Type "ant clean" : Clean all build files.
+
+HOW TO USE XXX-hadoop.jar
+=========================
+
+transfer this jar to nlphead
+type "hadoop jar XXX-hadoop.jar", EntryPoint.main() in your jar will be run. 

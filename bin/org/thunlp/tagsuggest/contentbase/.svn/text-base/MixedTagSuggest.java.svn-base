@@ -1,0 +1,101 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Map.Entry;
+
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+
+public class MixedTagSuggest implements TagSuggest {
+  private TagSuggest [] suggesters;
+  private double [] weights;
+  private Properties config = null;
+  private int numTags = 0;
+  
+  @Override
+  public void feedback(Post p) {}
+
+  @Override
+  /**
+   * modelPath is like
+   * "suggesterClass1:weight:modelpath,suggesterClass2:weight:modelpath"
+   */
+  public void loadModel(String modelPath) throws IOException {
+    String [] tokens = modelPath.split(",");
+    suggesters = new TagSuggest[tokens.length];
+    weights = new double[tokens.length];
+    
+    for (int i = 0; i < tokens.length; i++) {
+      String [] cols = tokens[i].split(":");
+      if (cols.length == 3) {
+        try {
+          suggesters[i] = (TagSuggest) Class.forName(cols[0]).newInstance();
+        } catch (InstantiationException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (IllegalAccessException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        weights[i] = Double.parseDouble(cols[1]);
+        suggesters[i].loadModel(cols[2]);
+        if (config != null) 
+          suggesters[i].setConfig(config);
+      }
+    }
+  }
+
+  @Override
+  public void setConfig(Properties config) {
+    this.config = config;
+    if (suggesters != null) {
+      for (int i = 0; i < suggesters.length; i++)
+        suggesters[i].setConfig(config);
+    }
+    numTags = Integer.parseInt(config.getProperty("num_tags", "5"));
+  }
+
+  @Override
+  public List<WeightString> suggest(Post p, StringBuilder explain) {
+    Map<String, Double> tagweights = new Hashtable<String, Double>();
+    for (int i = 0; i < suggesters.length; i++) {
+      addExplain(explain, "Running " + suggesters[i].getClass().getName());
+      List<WeightString> result = suggesters[i].suggest(p, explain);
+      double max = 0;
+      if (result.size() > 0)
+        max = result.get(0).getWeight();
+      for (WeightString ws : result) {
+        Double w = tagweights.get(ws.text);
+        if (w == null)
+          w = 0.0;
+        tagweights.put(ws.text, w + ws.weight / max * weights[i]);
+      }
+    }
+    List<WeightString> output = new ArrayList<WeightString>();
+    for (Entry<String, Double> e : tagweights.entrySet()) {
+      output.add(new WeightString(e.getKey(), e.getValue()));
+    }
+    Collections.sort(output, WeightString.REVERSE_COMPARATOR);
+    if (output.size() > numTags) {
+      output = output.subList(0, numTags);
+    }
+    return output;
+  }
+
+  private void addExplain(StringBuilder buffer, String text) {
+    if (buffer != null) {
+      buffer.append(text);
+    }
+  }
+
+}

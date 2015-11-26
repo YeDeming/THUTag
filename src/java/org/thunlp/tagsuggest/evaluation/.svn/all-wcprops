@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation
+END
+CrossValidator.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/CrossValidator.java
+END
+Evaluator.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/Evaluator.java
+END
+ShowTAM.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/ShowTAM.java
+END
+GuiFrontEnd.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/GuiFrontEnd.java
+END
+EvaluatorByActual.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/EvaluatorByActual.java
+END
+TamDump.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/TamDump.java
+END
+GetLeaveOutLikelihood.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/GetLeaveOutLikelihood.java
+END
+TAM2HTML.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/TAM2HTML.java
+END
+SMT2HTML.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/SMT2HTML.java
+END
+ShowNoiseTagLda.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/evaluation/ShowNoiseTagLda.java
+END

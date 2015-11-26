@@ -1,0 +1,358 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.misc.WeightString;
+
+public class SMTModel {
+	public static Logger LOG = Logger.getAnonymousLogger();
+	
+	private HashMap<Integer, String> bookMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> idMap = new HashMap<String, Integer>();
+	private HashMap<Integer, String> bookTagMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> tagIdMap = new HashMap<String, Integer>();
+	
+	private HashMap<String, Integer> wordCount = new HashMap<String, Integer>();
+	private HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
+	
+	private HashMap<Integer, HashMap<Integer, Double>> proTable = new HashMap<Integer, HashMap<Integer,Double>>();
+	private HashMap<Integer, HashMap<Integer, Double>> inverseTable = new HashMap<Integer, HashMap<Integer,Double>>();
+	
+	public SMTModel(String modelPath) throws IOException {
+		loadFrom(modelPath);
+	}
+	
+	private void loadFrom(String modelPath) throws IOException{
+		//Read book.vcb
+		String bookFile = modelPath+File.separator+"book.vcb";
+		BufferedReader book = new BufferedReader(
+				new InputStreamReader(new FileInputStream(bookFile),"UTF-8"));
+		String bookLine;
+		while((bookLine = book.readLine()) != null){
+			String[] datas = bookLine.split(" ");
+			if(datas.length != 3) 
+				continue;
+			bookMap.put(Integer.parseInt(datas[0]), datas[1]);
+			idMap.put(datas[1], Integer.parseInt(datas[0]));
+			wordCount.put(datas[1], Integer.parseInt(datas[2]));
+		}
+		book.close();
+		
+		//Read bookTag.vcb
+		String tagFile = modelPath+File.separator+"bookTag.vcb";
+		BufferedReader bookTag = new BufferedReader(
+				new InputStreamReader(new FileInputStream(tagFile),"UTF-8"));
+		String tagLine;
+		while((tagLine = bookTag.readLine()) != null){
+			String[] datas = tagLine.split(" ");
+			if(datas.length != 3) 
+				continue;
+			bookTagMap.put(Integer.parseInt(datas[0]), datas[1]);
+			tagIdMap.put(datas[1], Integer.parseInt(datas[0]));
+			//tagCount.put(datas[1], Integer.parseInt(datas[2]));
+		}
+		bookTag.close();
+		
+		//Read *.t1.5
+		File dir = new File(modelPath);
+		Filter filter = new Filter("t1.5");
+		String files[] = dir.list(filter);
+		if(files.length == 0){
+			System.out.println("*t1.5 not exist");
+			LOG.info("*t1.5 not exist");
+		}
+		BufferedReader pro = new BufferedReader(
+				new InputStreamReader(new FileInputStream(modelPath+File.separator+files[0]),"UTF-8"));
+		String proLine;
+		while((proLine = pro.readLine()) != null){
+			String[] data = proLine.split(" ");
+			if(data.length != 3) continue;
+			int first = Integer.parseInt(data[0]);
+			int second = Integer.parseInt(data[1]);
+			double probability = Double.parseDouble(data[2]);
+			if(first == 0 || second == 0 || (probability < 0.01)){
+				continue;
+			}
+			if(proTable.containsKey(first)){
+				proTable.get(first).put(second, probability);
+			}
+			else{
+				HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+				tmp.put(second, probability);
+				proTable.put(first, tmp);
+			}
+			/*
+			if(inverseTable.containsKey(second)){
+				inverseTable.get(second).put(first, probability);
+			}
+			else{
+				HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+				tmp.put(first, probability);
+				inverseTable.put(second, tmp);
+			}
+			*/
+		}
+		pro.close();
+		
+		Filter filter2 = new Filter("cxx.ti.final");
+		String files2[] = dir.list(filter2);
+		if(files2.length == 0){
+			System.out.println("*.ti.final not exist");
+			LOG.info("*.ti.final not exist");
+		}
+		BufferedReader inverse = new BufferedReader(
+				new InputStreamReader(new FileInputStream(modelPath+File.separator+files2[0]),"UTF-8"));
+		while((proLine = inverse.readLine()) != null){
+			String[] data = proLine.split(" ");
+			if(data.length != 3) continue;
+			int first = Integer.parseInt(data[0]);
+			int second = Integer.parseInt(data[1]);
+			double probability = Double.parseDouble(data[2]);
+			if(first == 0 || second == 0 || (probability < 0.01)){
+				continue;
+			}
+			if(inverseTable.containsKey(first)){
+				inverseTable.get(first).put(second, probability);
+			}
+			else{
+				HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+				tmp.put(second, probability);
+				inverseTable.put(first, tmp);
+			}
+		}
+		inverse.close();
+		
+		//BufferedReader tagCountFile = new BufferedReader(
+		//		new InputStreamReader(new FileInputStream(modelPath+File.separator+"tagCount.vcb"),"UTF-8"));
+		BufferedReader tagCountFile = new BufferedReader(
+						new InputStreamReader(new FileInputStream("/media/disk1/private/cxx/douban/sample/tagCount.vcb"),"UTF-8"));
+		while((tagLine = tagCountFile.readLine()) != null){
+			String [] datas = tagLine.split(" ");
+			if(datas.length != 2)
+				continue;
+			if(tagIdMap.containsKey(datas[0])){
+				tagCount.put(datas[0], Integer.parseInt(datas[1]));
+			}
+		}
+		tagCountFile.close();
+	}
+	
+//////////////////////////////////////////////////////////////////////////////
+	  // DEBUG METHODS.
+
+	  /**
+	   * Show current model in HTML format.
+	   */
+	  public String toTagIndexedString() {
+	    StringBuilder sb = new StringBuilder();
+	    // Write the header.
+	    sb.append("<html><head>");
+	    sb.append("<meta content='text/html; charset=utf-8' ");
+	    sb.append("http-equiv='content-type' />");
+	    sb.append("</head>");
+	    sb.append("<style>body {font-family:Consolas;}");
+	    sb.append("span.word {margin-right:3px}</style>");
+	    sb.append("<body><h1>");
+	    sb.append("Visualization of SMT ");
+	    sb.append("</h1>");
+
+	    
+	    // Sort all tags by likelihood to be selected.
+	    List<WeightString> tags = new ArrayList<WeightString>();
+	    for (Entry<String, Integer> e:tagCount.entrySet()) {
+	    	String tag = e.getKey();
+	    	int count = e.getValue();
+	    	if (tag.length() > 15)
+	    		continue;
+	    	if(count < 10){
+	    		continue;
+	    	}
+	    	tags.add(new WeightString(tag, count));
+	    }
+	    //Collections.sort(tags);
+	    
+	    Collections.sort(tags, new Comparator<WeightString>() {
+	      @Override
+	      public int compare(WeightString o1, WeightString o2) {
+	        return Double.compare(o2.weight, o1.weight);
+	      }
+	    });
+	    
+	    double maxTagWeight = tags.get(0).weight;
+	    
+	    // Sort all words for each tag and output.
+	    List<WeightString> words = new ArrayList<WeightString>();
+	    for(int i = 0; i < tags.size(); i++){
+	    	String tag = tags.get(i).text;
+	    	if(!tagIdMap.containsKey(tag)){
+	    		continue;
+	    	}
+	    	words.clear();
+	    	int tagId = tagIdMap.get(tag);
+	    	if(!inverseTable.containsKey(tagId)){
+	    		continue;
+	    	}
+	    	for(Entry<Integer, Double> e:inverseTable.get(tagId).entrySet()){
+	    		int id = e.getKey();
+	    		double probability = e.getValue();
+	    		if(bookMap.containsKey(id) && (probability > 0.01)){
+	    			words.add(new WeightString(bookMap.get(id), probability));
+	    		}
+	    	}
+	        if (words.size() == 0) {
+	            continue;
+	        }
+	        Collections.sort(words, new Comparator<WeightString>() {
+	        	@Override
+	        	public int compare(WeightString o1, WeightString o2) {
+	        		return Double.compare(o2.weight, o1.weight);
+	        		}
+	        	});
+	        int cutpos = 0;
+	        double maxWeight = words.get(0).weight;
+	        for (int j = 0; j < words.size(); j++) {
+	          if (words.get(j).weight < maxWeight * 0.4)
+	            break;
+	          cutpos = j;
+	        }
+	        if(cutpos > 10){
+	        	cutpos = 10;
+	        }
+	        sb.append("<div>{");
+	        for (int j = cutpos; j >= 0; j--) {
+	          sb.append("<span class='word' style='");
+	          sb.append(getWeightedStyle(words.get(j).weight / maxWeight));
+	          sb.append("'>" + words.get(j).text + "</span>");
+	        }
+	        sb.append("} =&gt; ");
+	        sb.append("<span class='tag' style='");
+	        sb.append(getWeightedStyle(tags.get(i).weight / maxTagWeight));
+	        sb.append("'>" + tag  + "</span></div>");
+	    }
+	    sb.append("</body></html>");
+	    return sb.toString();
+	  }
+
+	  
+	  /**
+	   * Show current model in HTML format.
+	   */
+	  
+	  
+	  public String toWordIndexedString() {
+	    StringBuilder sb = new StringBuilder();
+	    // Write the header.
+	    sb.append("<html><head>");
+	    sb.append("<meta content='text/html; charset=utf-8' ");
+	    sb.append("http-equiv='content-type' />");
+	    sb.append("</head>");
+	    sb.append("<style>body {font-family:Consolas;}");
+	    sb.append("span.tag {margin-right:3px}</style>");
+	    sb.append("<body><h1>");
+	    sb.append("Visualization of SMT ");
+	    sb.append("</h1>");
+	    sb.append("<table>");
+	    
+	    // Sort all features by likelihood to be selected.
+	    List<WeightString> words = new ArrayList<WeightString>();
+	    for (Entry<String, Integer> e:wordCount.entrySet()) {
+	    	String word = e.getKey();
+	    	int count = e.getValue();
+	    	if (word.length() > 15)
+	    		continue;
+	    	if(count < 10){
+	    		continue;
+	    	}
+	    	words.add(new WeightString(word, count));
+	    }
+	    Collections.sort(words, new Comparator<WeightString>() {
+	      @Override
+	      public int compare(WeightString o1, WeightString o2) {
+	        return Double.compare(o2.weight, o1.weight);
+	      }
+	    });
+	    double maxWordWeight = words.get(0).weight;
+	    
+	    // Sort all tags for each word and output.
+	    List<WeightString> tags = new ArrayList<WeightString>();
+	    for(int i = 0; i < words.size(); i++){
+	    	String word = words.get(i).text;
+	    	if(!idMap.containsKey(word)){
+	    		continue;
+	    	}
+	    	tags.clear();
+	    	int id = idMap.get(word);
+	    	if(!proTable.containsKey(id)){
+	    		continue;
+	    	}
+	    	for(Entry<Integer, Double> e:proTable.get(id).entrySet()){
+	    		int tagId = e.getKey();
+	    		double probability = e.getValue();
+	    		if(bookTagMap.containsKey(tagId) && (probability > 0.01)){
+	    			tags.add(new WeightString(bookTagMap.get(tagId), probability));
+	    		}
+	    	}
+	        if (tags.size() == 0) {
+	            continue;
+	        }
+	        Collections.sort(tags, new Comparator<WeightString>() {
+	        	@Override
+	        	public int compare(WeightString o1, WeightString o2) {
+	        		return Double.compare(o2.weight, o1.weight);
+	        		}
+	        	});
+		      sb.append("<tr>");
+		      sb.append("<td><span class='word' style='");
+		      sb.append(getWeightedStyle(words.get(i).weight / maxWordWeight));
+		      sb.append("'>" + word + "</span></td><td>");
+		      
+		      //sb.append("<td><span class='feature'>" + word + "</span></td><td>");
+		      double maxWeight = tags.get(0).weight;
+		      for (int j = 0; j < tags.size() && j < 10; j++) {
+		        sb.append("<span class='tag' style='");
+		        sb.append(getWeightedStyle(tags.get(j).weight / maxWeight));
+		        sb.append("'>" + tags.get(j).text + "</span>");
+		      }
+		      sb.append("</td></tr>");
+	    }
+	    sb.append("</table></body></html>");
+	    return sb.toString();
+	  }
+	  
+
+
+	  private String getWeightedStyle(double weight) {
+	    if (weight > 1)
+	      weight = 1;
+	    if (weight < 0)
+	      weight = 0;
+	    int background = (int)((1.0 - weight) * 255.0);
+	    int foreground = weight > 0.1 ? 255 : 178;
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("background-color:rgb(");
+	    sb.append(Integer.toString(background));
+	    sb.append(",");
+	    sb.append(Integer.toString(background));
+	    sb.append(",");
+	    sb.append(Integer.toString(background));
+	    sb.append(");color:rgb(");
+	    sb.append(Integer.toString(foreground));
+	    sb.append(",");
+	    sb.append(Integer.toString(foreground));
+	    sb.append(",");
+	    sb.append(Integer.toString(foreground));
+	    sb.append(")");
+	    return sb.toString();
+	  }
+}

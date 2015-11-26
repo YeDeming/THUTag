@@ -1,0 +1,100 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.IOException;
+import java.util.logging.Logger;
+
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.lib.IdentityReducer;
+import org.thunlp.hadoop.MapReduceHelper;
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.dataset.MakePlainTextPost.Counters;
+import org.thunlp.tool.GenericTool;
+
+/**
+ * Find posts with at least one tag in the input data, save all tagged posts to
+ * the output.
+ * @author sixiance
+ *
+ */
+@SuppressWarnings("deprecation")
+public class FindTaggedPosts implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.addWithDefaultValue("mapreduce", "true", "");
+    flags.parseAndCheck(args);
+
+    if (flags.getBoolean("mapreduce")) {
+      MapReduceHelper.runTextSeqFileMapReduce(
+          new JobConf(this.getClass()),
+          FindTaggedPostMapper.class, IdentityReducer.class,
+          flags.getString("input"), flags.getString("output"));
+    } else {
+      RecordReader r = new RecordReader(
+          flags.getString("input"),
+          "UTF-8",
+          RecordReader.TYPE_SEQUENCE_FILE, true);
+      RecordWriter w = new RecordWriter(
+          flags.getString("output"),
+          "UTF-8",
+          RecordWriter.TYPE_SEQUENCE_FILE, true);
+      JsonUtil J = new JsonUtil();
+      while (r.next()) {
+        Post p;
+        try {
+          p = J.fromJson(r.value(), Post.class);
+        } catch (IOException e) {
+          LOG.info("JSON parsing exception at record: " + r.numRead());
+          continue;
+        }
+        if (p.getTags().size() > 0)
+          w.add(r.key(), r.value());
+        if (r.numRead() % 1000 == 0)
+          LOG.info(" " + r.numRead());
+      }
+      r.close();
+      w.close();
+    }
+  }
+
+  public static class FindTaggedPostMapper
+  implements Mapper<Text, Text, Text, Text> {
+    Text outkey = new Text();
+    Text outvalue = new Text();
+    JsonUtil J = new JsonUtil();
+
+    public void configure(JobConf job) {
+    }
+
+    public void map(Text key, Text value,
+        OutputCollector<Text, Text> collector, Reporter r) throws IOException {
+      Post p = null;
+      try {
+        p = J.fromTextAsJson(value, Post.class);
+      } catch (IOException e) {
+        r.incrCounter(Counters.NUM_JSON_ERROR, 1);
+        return;
+      }
+      if (p.getTags().size() > 0) {
+        collector.collect(key, value);
+      }
+    }
+
+    public void close() {
+    }
+
+  }
+
+}

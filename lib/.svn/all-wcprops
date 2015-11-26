@@ -1,0 +1,185 @@
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/4226/exp/cxx/lib
+END
+htmllexer.jar
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/4226/exp/cxx/lib/htmllexer.jar
+END
+one-jar-ant-task-0.96.jar
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/4226/exp/cxx/lib/one-jar-ant-task-0.96.jar
+END
+gson-1.3-b2.jar
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/4226/exp/cxx/lib/gson-1.3-b2.jar
+END
+json.jar
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/4226/exp/cxx/lib/json.jar
+END
+stanford-postagger.jar
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/4226/exp/cxx/lib/stanford-postagger.jar
+END
+base.jar
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/4226/exp/cxx/lib/base.jar
+END
+hadoop-0.20.1-core.jar
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/4226/exp/cxx/lib/hadoop-0.20.1-core.jar
+END
+commons-cli-1.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/4226/exp/cxx/lib/commons-cli-1.1.jar
+END
+lucene-analyzers-2.2.0.jar
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/4226/exp/cxx/lib/lucene-analyzers-2.2.0.jar
+END
+htmlparser.jar
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/4226/exp/cxx/lib/htmlparser.jar
+END
+hadooplda-libs.jar
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/4226/exp/cxx/lib/hadooplda-libs.jar
+END
+jackson-mapper-asl-1.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/4226/exp/cxx/lib/jackson-mapper-asl-1.0.1.jar
+END
+mail.jar
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/4226/exp/cxx/lib/mail.jar
+END
+commons-httpclient-3.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/4226/exp/cxx/lib/commons-httpclient-3.0.1.jar
+END
+mysql-connector-java-5.0.4-bin.jar
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/4226/exp/cxx/lib/mysql-connector-java-5.0.4-bin.jar
+END
+commons-codec-1.3.jar
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/4226/exp/cxx/lib/commons-codec-1.3.jar
+END
+commons-collections-3.2.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/4226/exp/cxx/lib/commons-collections-3.2.1.jar
+END
+jackson-core-asl-1.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/4226/exp/cxx/lib/jackson-core-asl-1.0.1.jar
+END
+weka.jar
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/4226/exp/cxx/lib/weka.jar
+END
+commons-logging-1.1.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/4226/exp/cxx/lib/commons-logging-1.1.1.jar
+END
+commons-lang-2.4.jar
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/4226/exp/cxx/lib/commons-lang-2.4.jar
+END
+servlet-api.jar
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/4226/exp/cxx/lib/servlet-api.jar
+END
+filterbuilder.jar
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/4226/exp/cxx/lib/filterbuilder.jar
+END
+libsvm.jar
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/4226/exp/cxx/lib/libsvm.jar
+END
+commons-logging-1.0.4.jar
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/4226/exp/cxx/lib/commons-logging-1.0.4.jar
+END
+junit-3.8.1.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/4226/exp/cxx/lib/junit-3.8.1.1.jar
+END
+lucene-core-2.2.0.jar
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/4226/exp/cxx/lib/lucene-core-2.2.0.jar
+END
+log4j-1.2.13.jar
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/4226/exp/cxx/lib/log4j-1.2.13.jar
+END
+velocity-1.6.jar
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/4226/exp/cxx/lib/velocity-1.6.jar
+END
+activation.jar
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/4226/exp/cxx/lib/activation.jar
+END

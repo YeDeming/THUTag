@@ -1,0 +1,47 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.RecordWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class CleanDoubanData implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  
+  private Pattern toRemoveRE = Pattern.compile(
+      "(简介|制片国家/地区|导演|影名|编剧|简体中文名|官方网站|上映日期|" +
+      "语言|imdb编号|主演|又名|出版|编者|编着|开本|版次|原定价|定价):");
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.parseAndCheck(args);
+    
+    JsonUtil J = new JsonUtil();
+    RecordReader reader = new RecordReader(flags.getString("input"));
+    RecordWriter writer = new RecordWriter(flags.getString("output"));
+    while (reader.next()) {
+      Post p = J.fromJson(reader.value(), Post.class);
+      String content = p.getContent();
+      // LOG.info("content: " + content);
+      content = toRemoveRE.matcher(content).replaceAll("");
+      p.setContent(content);
+      // LOG.info("after: " + content);
+      String json = J.toJson(p);
+      // LOG.info("jsonL: " + json);
+      writer.add(reader.key(), json);
+      if (reader.numRead() % 1000 == 0)
+        LOG.info("cleaned: " + reader.numRead());
+    }
+    writer.close();
+    reader.close();
+  }
+
+}

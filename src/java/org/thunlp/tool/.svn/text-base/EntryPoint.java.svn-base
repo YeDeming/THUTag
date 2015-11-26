@@ -1,0 +1,114 @@
+package org.thunlp.tool;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+/**
+ * The entry point for this JAR.
+ */
+public class EntryPoint {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  
+  public static String [] COMMAND_MAP = {
+    "import-bibsonomy", "org.thunlp.tagsuggest.dataset.ImportBibSonomy",
+    "train-knn", "org.thunlp.tagsuggest.train.TrainKnn",
+    "train-fdt", "org.thunlp.tagsuggest.train.TrainFDT",
+    "train-naivebayes", "org.thunlp.tagsuggest.train.TrainNaiveBayes",
+    "build-tag-user-graph", "org.thunlp.tagsuggest.train.TagUserGraphBuilder",
+    "evaluate", "org.thunlp.tagsuggest.evaluation.Evaluator",
+    "sample", "org.thunlp.tagsuggest.dataset.Sample",
+    "demo", "org.thunlp.tagsuggest.evaluation.GuiFrontEnd",
+    "samplepostperuser", "org.thunlp.tagsuggest.dataset.SamplePostPerUser",
+    "cutfolds", "org.thunlp.tagsuggest.dataset.CutFolds",
+    "cx", "org.thunlp.tagsuggest.evaluation.CrossValidator"
+  };
+  
+  public static void main( String [] args ) throws Exception {
+    if ( args.length < 1 ) {
+      System.out.println("usage: classname args...");
+      return;
+    }
+    setLogFormat();
+    Map<String, Class> commands = loadCommands(COMMAND_MAP);
+    Pattern classNameRE = Pattern.compile(
+        "[a-z0-9]+(\\.[a-z0-9]+)+",
+        Pattern.CASE_INSENSITIVE);
+    
+    if (commands.containsKey(args[0])) {
+      Class commandClass = commands.get(args[0]);
+
+      String [] realargs = new String[args.length - 1];
+      for ( int i = 0 ; i < realargs.length ; i++ ) {
+        realargs[i] = args[i+1];
+      }
+      GenericTool tool = (GenericTool) commandClass.newInstance();
+      tool.run(realargs);
+    } else if (classNameRE.matcher(args[0]).matches()) {
+      String className = args[0];
+      if (!className.startsWith("org")) {
+        className = "org.thunlp.tagsuggest." + className;
+      }
+      Class commandClass = Class.forName(className);
+      String [] realargs = new String[args.length - 1];
+      for ( int i = 0 ; i < realargs.length ; i++ ) {
+        realargs[i] = args[i+1];
+      }
+      GenericTool tool = (GenericTool) commandClass.newInstance();
+      tool.run(realargs);
+    } else {
+      printCommandsList(commands);
+    }
+  }
+  
+  public static void printCommandsList(Map<String, Class> map) {
+    System.out.println("Available commands:");
+    for (Entry<String, Class> e : map.entrySet()) {
+      System.out.println("\t" + e.getKey());
+    }
+  }
+  
+  public static Map<String, Class> loadCommands(String [] array) {
+    Map<String, Class> map = new Hashtable<String, Class>();
+    for (int i = 0; i < array.length; i += 2) {
+      Class c = null;
+      try {
+        c = Class.forName(array[i+1]);
+      } catch (ClassNotFoundException e) {
+        LOG.info("Cannot load class " + array[i+1]);
+      }
+      map.put(array[i], c);
+    }
+    return map;
+  }
+  
+  public static void setLogFormat() {
+    Logger root = Logger.getLogger("");
+    Handler [] handlers = root.getHandlers();  // returns 1
+
+    for (int i = 0; i < handlers.length; i++) {
+      if (handlers[i] instanceof ConsoleHandler) {
+        ((ConsoleHandler)handlers[i])
+            .setFormatter(new Formatter() {
+              public SimpleDateFormat format =
+                new SimpleDateFormat("yy/MM/dd HH:mm:ss");
+
+              public String format(LogRecord record) {
+                Date d = new Date(record.getMillis());
+                return format.format(d) + " " + record.getMessage()  + "\n";
+              }
+              
+            });
+      }
+    }
+
+  }
+}

@@ -1,0 +1,323 @@
+package org.thunlp.tagsuggest.train;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Set;
+import java.util.Vector;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.language.chinese.LangUtils;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.ModelTrainer;
+import org.thunlp.tagsuggest.common.TagFilter;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+import org.thunlp.tool.GenericTool;
+
+public class TrainSampleSMT implements GenericTool, ModelTrainer {
+	private static Logger LOG = Logger.getAnonymousLogger();
+	private Properties config = null;
+	private String fold = "";
+	JsonUtil J = new JsonUtil();
+	WordFeatureExtractor fe = null;
+	TagFilter tagFilter = null;
+
+	@Override
+	public void run(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+		Flags flags = new Flags();
+		flags.add("input");
+		flags.add("output");
+		flags.add("config");
+
+		Properties config = ConfigIO
+				.configFromString(flags.getString("config"));
+		train(flags.getString("input"), flags.getString("output"), config);
+	}
+
+	@Override
+	public void train(String inputPath, String modelPath, Properties config)
+			throws IOException {
+		// TODO Auto-generated method stub
+		this.config = config;
+		this.fold = config.getProperty("fold", "");
+
+		buildProTable(inputPath, new File(modelPath));
+
+	}
+
+	public void buildProTable(String input, File modelDir) {
+		int counter = 0;
+		try {
+			if (!modelDir.exists()) {
+				modelDir.mkdir();
+			}
+
+			Lexicon wordlex = new Lexicon();
+			Lexicon taglex = new Lexicon();
+			WordFeatureExtractor.buildLexicons(input, wordlex, taglex, config);
+			fe = new WordFeatureExtractor(config);
+			fe.setWordLexicon(wordlex);
+			fe.setTagLexicon(taglex);
+			tagFilter = new TagFilter(config, taglex);
+			Set<String> filtered = new HashSet<String>();
+
+			RecordReader reader = new RecordReader(input);
+
+			Lexicon localWordlex = new Lexicon();
+			Lexicon localTaglex = new Lexicon();
+			File wordLexFile = new File(modelDir.getAbsolutePath() + "/wordlex");
+			File tagLexFile = new File(modelDir.getAbsolutePath() + "/taglex");
+			if (wordLexFile.exists() && tagLexFile.exists()) {
+				LOG.info("Use cached lexicons");
+				localWordlex.loadFromFile(wordLexFile);
+				localTaglex.loadFromFile(tagLexFile);
+			} else {
+				while (reader.next()) {
+					DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+					if (fold.length() > 0 && p.getExtras().equals(fold)) {
+						continue;
+					}
+					String[] features = fe.extract(p);
+					if (features.length <= 0) {
+						continue;
+					}
+					tagFilter.filterMapWithNorm(p.getDoubanTags(), filtered);
+					if (filtered == null) {
+						continue;
+					}
+					localWordlex.addDocument(features);
+					localTaglex.addDocument(filtered
+							.toArray(new String[filtered.size()]));
+
+					if (reader.numRead() % 1000 == 0)
+						LOG.info(modelDir.getAbsolutePath()
+								+ " building lexicons: " + reader.numRead());
+				}
+				localWordlex.saveToFile(wordLexFile);
+				localTaglex.saveToFile(tagLexFile);
+				reader.close();
+				reader = new RecordReader(input);
+			}
+
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(modelDir.getAbsolutePath() + "/book"),
+					"UTF-8"));
+
+			BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(modelDir.getAbsolutePath()
+							+ "/bookTag"), "UTF-8"));
+
+			TagFilter localTagFilter = new TagFilter(config, localTaglex);
+			Set<String> localFiltered = new HashSet<String>();
+
+			Random random = new Random();
+			Pattern spaceRE = Pattern.compile(" +");
+			while (reader.next()) {
+				counter++;
+				DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+				if (fold.length() > 0 && p.getExtras().equals(fold)) {
+					continue;
+				}
+				localTagFilter.filterMapWithNorm(p.getDoubanTags(),
+						localFiltered);
+				int total = 0;
+				Vector<Integer> count = new Vector<Integer>();
+				Vector<String> tagWord = new Vector<String>();
+				for (Entry<String, Integer> e : p.getDoubanTags().entrySet()) {
+					String tag = e.getKey();
+					tag = LangUtils.removePunctuationMarks(tag);
+					tag = spaceRE.matcher(tag).replaceAll("");
+					tag = LangUtils.T2S(tag);
+					tag = tag.toLowerCase();
+					if (localFiltered.contains(tag)) {
+						total += e.getValue();
+						count.add(e.getValue());
+						tagWord.add(e.getKey());
+					}
+				}
+				if (total == 0)
+					continue;
+				// Vector<Double> tagProb = new Vector<Double>();
+				String[] words = fe.extract(p);
+				if (words.length <= 0) {
+					continue;
+				}
+
+				/*
+				 * int tagLength = words.length; if(tagLength <= 0){ continue; }
+				 * 
+				 * if(tagLength > total){ tagLength = total; }
+				 */
+
+				Vector<Double> wordTfidf = new Vector<Double>();
+				Vector<String> wordList = new Vector<String>();
+				Counter<String> termFreq = new Counter<String>();
+				for (String word : words) {
+					termFreq.inc(word, 1);
+				}
+				Iterator<Entry<String, Long>> iter = termFreq.iterator();
+				double totalTfidf = 0.0;
+				while (iter.hasNext()) {
+					Entry<String, Long> e = iter.next();
+					String word = e.getKey();
+					wordList.add(word);
+					double tf = ((double) e.getValue())
+							/ ((double) words.length);
+					double idf = Math.log(((double) localWordlex.getNumDocs())
+							/ ((double) localWordlex.getWord(word)
+									.getDocumentFrequency()));
+					wordTfidf.add(tf * idf);
+					totalTfidf += tf * idf;
+				}
+				Vector<Double> wordProb = new Vector<Double>();
+				for (int i = 0; i < wordTfidf.size(); i++) {
+					wordProb.add(wordTfidf.elementAt(i) / totalTfidf);
+				}
+				int wordnum = 0;
+				for (int i = 0; i < words.length && i < 200; i++) {
+					double select = random.nextDouble();
+					double sum = 0.0;
+					int j = 0;
+					for (j = 0; j < wordProb.size(); j++) {
+						sum += wordProb.elementAt(j);
+						if (sum > select)
+							break;
+					}
+					String word = wordList.elementAt(j);
+					if (i == 0) {
+						out.write(word);
+					} else {
+						out.write(" " + word);
+					}
+					wordnum++;
+				}
+				out.newLine();
+				out.flush();
+
+				int tagLength = wordnum;
+				for (int i = 0; i < tagLength; i++) {
+					int num = random.nextInt(total);
+					int sum = 0;
+					int j = 0;
+					for (j = 0; j < count.size(); j++) {
+						sum += count.elementAt(j);
+						if (sum > num)
+							break;
+					}
+					if (i == 0) {
+						outTag.write(tagWord.elementAt(j));
+					} else {
+						outTag.write(" " + tagWord.elementAt(j));
+					}
+				}
+				outTag.newLine();
+				outTag.flush();
+			}
+			reader.close();
+			out.close();
+			outTag.close();
+		} catch (IOException e) {
+			// TODO: handle exception
+			System.out.println(counter);
+			e.printStackTrace();
+		}
+
+		LOG.info("source and target are prepared!");
+
+		Runtime rn = Runtime.getRuntime();
+		Process p = null;
+		try {
+			p = rn
+					.exec(
+							"/media/disk1/private/cxx/douban/mkcls -c80 -pbook -Vbook.vcb.classes opt",
+							null, modelDir);
+			p.waitFor();
+			p = rn
+					.exec(
+							"/media/disk1/private/cxx/douban/mkcls -c80 -pbookTag -VbookTag.vcb.classes opt",
+							null, modelDir);
+			p.waitFor();
+			LOG.info("mkcls ok!");
+			p = rn
+					.exec(
+							"/media/disk1/private/cxx/douban/plain2snt.out bookTag book",
+							null, modelDir);
+			p.waitFor();
+			LOG.info("plain2snt ok!");
+			// p=rn.exec("/media/disk1/private/cxx/douban/GIZA++ -S book.vcb -T bookTag.vcb -C book_bookTag.snt",null,modelDir);
+			// p=rn.exec("/media/disk1/private/cxx/douban/GIZA++ -S book.vcb -T bookTag.vcb -C book_bookTag.snt -m1 5 -m2 0 -mh 0 -m3 0 -m4 0 -m5 0 -m6 0 -model1dumpfrequency 1 -emprobforempty 0.9",null,modelDir);
+			p = rn
+					.exec(
+							"/media/disk1/private/cxx/douban/GIZA++ -S book.vcb -T bookTag.vcb -C book_bookTag.snt -m1 5 -m2 0 -mh 0 -m3 0 -m4 0 -m5 0 -m6 0 -model1dumpfrequency 1 -ml 201",
+							null, modelDir);
+			/*
+			 * p=rn.exec("/home/cxx/smt/sample/mkcls -c80 -pbook -Vbook.vcb.classes opt"
+			 * ,null,modelDir); p.waitFor();p=rn.exec(
+			 * "/home/cxx/smt/sample/mkcls -c80 -pbookTag -VbookTag.vcb.classes opt"
+			 * ,null,modelDir); p.waitFor(); LOG.info("mkcls ok!");
+			 * p=rn.exec("/home/cxx/smt/sample/plain2snt.out bookTag book"
+			 * ,null,modelDir); p.waitFor(); LOG.info("plain2snt ok!");
+			 * p=rn.exec(
+			 * "/home/cxx/smt/sample/GIZA++ -S book.vcb -T bookTag.vcb -C book_bookTag.snt"
+			 * ,null,modelDir);
+			 */
+			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(),
+					"Error");
+			StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(),
+					"Output");
+			errorGobbler.start();
+			outputGobbler.start();
+			p.waitFor();
+			LOG.info("GIZA++ ok!");
+		} catch (Exception e) {
+			LOG.info("Error exec!");
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		// new TrainSMT().buildProTable("/home/cxx/smt/sample/train.dat", new
+		// File("/home/cxx/smt/sample"));
+
+	}
+
+	class StreamGobbler extends Thread {
+		InputStream is;
+		String type;
+
+		StreamGobbler(InputStream is, String type) {
+			this.is = is;
+			this.type = type;
+		}
+
+		public void run() {
+			try {
+				InputStreamReader isr = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(isr);
+				String line = null;
+				while ((line = br.readLine()) != null) {
+					LOG.info(type + ">" + line);
+				}
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
+	}
+}

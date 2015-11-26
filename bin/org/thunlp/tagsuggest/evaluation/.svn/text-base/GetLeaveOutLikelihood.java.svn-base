@@ -1,0 +1,155 @@
+package org.thunlp.tagsuggest.evaluation;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.TextFileWriter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tagsuggest.common.FeatureExtractor;
+import org.thunlp.tagsuggest.common.GenerativeTagSuggest;
+import org.thunlp.tagsuggest.common.ModelTrainer;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.tagsuggest.contentbase.TagAllocationModel.Document;
+import org.thunlp.tagsuggest.dataset.CutFolds;
+import org.thunlp.tool.GenericTool;
+
+/** 
+ * Cross-validate the log-likelihoods of TAM.
+ * @author sixiance
+ *
+ */
+public class GetLeaveOutLikelihood implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  private Properties config = null;
+  private double unseenLikelihood = -35;
+
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("dataset");
+    flags.add("working_dir");
+    flags.add("config");
+    flags.add("output");
+    flags.add("trainer_class");
+    flags.add("suggester_class");
+    flags.addWithDefaultValue("num_folds", "5", "");
+    flags.parseAndCheck(args);
+
+    int numFolds = flags.getInt("num_folds");
+    config = ConfigIO.configFromString(flags.getString("config"));
+    String workingDir = flags.getString("working_dir");
+    String datasetPath = flags.getString("dataset");
+    String cutDatasetPath = workingDir + File.separator + "cut.gz";
+    unseenLikelihood = Double.parseDouble(config.getProperty("ul", "-35"));
+
+    File workingDirFile = new File(workingDir);
+
+    if (!workingDirFile.exists())
+      workingDirFile.mkdir();
+
+    // Cut the dataset into given number of folds.
+    LOG.info("Cut the dataset into " + numFolds + " folds.");
+    CutFolds cf = new CutFolds();
+    boolean sample = config.getProperty("isSample", "true").equals("true");
+    cf.cutFolds(datasetPath, cutDatasetPath, numFolds,sample,0);
+
+    // Train & test for each fold.
+    List<Double> likelihoods = new LinkedList<Double>();
+    ModelTrainer trainer = 
+      (ModelTrainer) Class.forName(
+          flags.getString("trainer_class")).newInstance();
+    for (int i = 0; i < numFolds; i++) {
+      LOG.info("Fold " + i);
+      config.setProperty("fold", Integer.toString(i));
+      LOG.info("Training " + i);
+      String modelPath = workingDirFile.getAbsolutePath() + "/model." + i;
+      trainer.train(
+          cutDatasetPath,
+          modelPath,
+          config);
+      LOG.info("Testing " + i);
+      List<Post> testdocs = loadDocsWithFold(cutDatasetPath, i, false);
+      GenerativeTagSuggest suggester = 
+        (GenerativeTagSuggest) Class.forName(
+            flags.getString("suggester_class")).newInstance();
+      suggester.loadModel(modelPath);
+      List<Double> foldLikelihoods = new LinkedList<Double>();
+      for (Post p : testdocs) {
+        suggester.likelihood(p, foldLikelihoods);
+      }
+      likelihoods.add(mean(foldLikelihoods));
+    }
+    WriteLikelihoods(flags.getString("output"), likelihoods);
+  }
+  
+  public double mean(List<Double> l) {
+    double sum = 0;
+    for (Double d : l)
+      sum += d;
+    return sum / l.size();
+  }
+
+  public List<Post> loadDocsWithFold(String input, int fold, boolean train)
+  throws IOException {
+    FeatureExtractor fe = new WordFeatureExtractor(config);
+    JsonUtil J = new JsonUtil();
+
+    // Load all docs.
+    List<Post> docs = new LinkedList<Post>();
+    RecordReader reader = new RecordReader(input);
+    String foldstr = Integer.toString(fold);
+    while (reader.next()) {
+      Post p = J.fromJson(reader.value(), Post.class);
+      boolean infold = p.getExtras().equals(foldstr);
+      if (train)
+        infold = !infold;
+      if (infold) {
+        docs.add(p);
+      }
+    }
+    reader.close();
+    LOG.info("load " + docs.size() + " docs.");
+    return docs;
+  }
+
+  public void WriteLikelihoods(String filename, List<Double> likelihoods)
+  throws IOException {
+    double mean = 0;
+    for (Double d : likelihoods) {
+      mean += d;
+    }
+    mean /= likelihoods.size();
+    double stdev = 0;
+    for (Double d : likelihoods) {
+      stdev += (d - mean) * (d - mean);
+    }
+    stdev /= likelihoods.size();
+    stdev = Math.sqrt(stdev);
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(mean);
+    sb.append(" ");
+    sb.append(stdev);
+    sb.append("\n");
+    TextFileWriter.writeToFile(sb.toString(), new File(filename), "UTF-8");
+  }
+
+  private double log(double v) {
+    if (v < 0) {
+      throw new RuntimeException("negative likelihood!");
+    }
+    if (v == 0) {
+      return unseenLikelihood;
+    }
+    return Math.log(v);
+  }
+
+}

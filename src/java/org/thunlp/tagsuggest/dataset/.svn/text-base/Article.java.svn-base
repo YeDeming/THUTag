@@ -1,0 +1,351 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+
+/**
+ * 文章
+ * 
+ * @author He Weipeng
+ */
+public class Article {
+	public static final int DATE_FORMAT_STYLE = DateFormat.MEDIUM;
+	public static final int TIME_FORMAT_STYLE = DateFormat.MEDIUM;
+
+	private String title;
+	private String summary;
+	private Content content;
+	private Set<String> keys;
+	private Date d;
+	private String source;
+
+	private int index = -1;
+	private String corpusName = null;
+	
+	public Article(){
+		//DEFAULT
+	}
+
+	public Article(String title, String summary, Content content, Date d,
+					String source) {
+		this.title = title;
+		this.summary = summary;
+		this.content = content;
+		this.d = d;
+		this.source = source;
+
+		keys = new TreeSet<String>();
+	}
+
+	protected Article(Document doc) throws ParseException {
+		Element elmt = doc.getDocumentElement();
+
+		title = getElementContent(elmt, "title");
+		if (title == null || title == "") {
+			throw new ParseException("Title not Found");
+		}
+
+		summary = getElementContent(elmt, "summary");
+
+		NodeList nl = elmt.getElementsByTagName("key");
+		keys = new TreeSet<String>();
+		for (int i = 0; i < nl.getLength(); i++) {
+			keys.add(nl.item(i).getTextContent());
+		}
+
+		source = getElementContent(elmt, "source");
+
+		String dateStr = getElementContent(elmt, "date");
+		DateFormat df = DateFormat.getDateTimeInstance(DATE_FORMAT_STYLE,
+				TIME_FORMAT_STYLE, Locale.CHINA);
+		try {
+			d = df.parse(dateStr);
+		}
+		catch (java.text.ParseException e) {
+			throw new ParseException("Date Parse Exception", e);
+		}
+
+		nl = elmt.getElementsByTagName("content");
+		if (nl.getLength() > 0) {
+			content = new Content((Element) nl.item(0));
+		}
+		else {
+			throw new ParseException("Content not Found");
+		}
+
+	}
+
+	public static String getElementContent(Element doc, String tagName) {
+		NodeList nl = doc.getElementsByTagName(tagName);
+		if (nl.getLength() > 0) {
+			return nl.item(0).getTextContent();
+		}
+		return "";
+	}
+
+	/**
+	 * 解析xml为文章
+	 * @param xml
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Article getArticle(String xml) throws ParseException {
+		try {
+			DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			Document doc = db.parse(new InputSource(new StringReader(xml)));
+			return new Article(doc);
+		}
+		catch (ParserConfigurationException e) {
+			throw new ParseException("XML Parser Exception", e);
+		}
+		catch (SAXException e) {
+			throw new ParseException("SAX Exception", e);
+		}
+		catch (IOException e) {
+			throw new ParseException("IO Exception", e);
+		}
+	}
+
+	/**
+	 * 通过文件载入（解析）一篇xml格式的文章
+	 * @param xmlFile 
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Article getArticle(File xmlFile) throws ParseException {
+		try {
+			DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			Document doc = db.parse(new InputSource(new FileReader(xmlFile)));
+			return new Article(doc);
+		}
+		catch (ParserConfigurationException e) {
+			throw new ParseException("XML Parser Exception", e);
+		}
+		catch (SAXException e) {
+			throw new ParseException("SAX Exception", e);
+		}
+		catch (IOException e) {
+			throw new ParseException("IO Exception", e);
+		}
+	}
+
+	/**
+	 * @return 题目
+	 */
+	public String getTitle() {
+		return title;
+	}
+
+	/**
+	 * @return 摘要
+	 */
+	public String getSummary() {
+		return summary;
+	}
+
+	/**
+	 * @return 文章的正文
+	 */
+	public Content getContent() {
+		return content;
+	}
+
+	/**
+	 * @return 总共标注的关键词数
+	 */
+	public int getNumOfKeys() {
+		return keys.size();
+	}
+
+	public Date getDate() {
+		return d;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	/**
+	 * @return 题目和正文的长度，不算摘要
+	 */
+	public int getSize() {
+		return content.getSize() + title.length();
+	}
+
+	public void addKey(String k) {
+		if (k == null) {
+			return;
+		}
+
+		k = k.trim();
+		if (k.length() <= 0) {
+			return;
+		}
+
+		keys.add(k);
+	}
+
+	public String toXML() {
+		StringBuffer xml = new StringBuffer();
+		xml.append("<news>\n<title><![CDATA[").append(title).append(
+				"]]></title>\n<summary><![CDATA[").append(summary).append(
+				"]]></summary>\n");
+		Iterator<String> iter = keys.iterator();
+		int i = 0;
+		while (iter.hasNext()) {
+			xml.append("<key id=\"").append(i).append("\">").append(iter.next()).append(
+					"</key>\n");
+			i++;
+		}
+		xml.append(content.toXML()).append("\n<date>");
+		xml.append(dateStr()).append("</date>\n").append("<source>").append(
+				source).append("</source>\n</news>");
+
+		return xml.toString();
+	}
+
+	public String dateStr() {
+		DateFormat df = DateFormat.getDateTimeInstance(DATE_FORMAT_STYLE,
+				TIME_FORMAT_STYLE, Locale.CHINA);
+		return df.format(d);
+	}
+
+	public String saveToFile(String dir) throws ParseException {
+		String fileName = new String();
+		if (getNumOfKeys() > 0) {
+			fileName += "K";
+		}
+
+		if (summary != null && summary.length() > 0) {
+			fileName += "S";
+		}
+
+		fileName += "_" + dateStr() + "_" + title.hashCode();
+		fileName = fileName.replace(' ', '-');
+		fileName = fileName.replace(':', '-');
+
+		try {
+			FileOutputStream out = new FileOutputStream(dir + fileName + ".xml");
+			out.write((byte) '\n');
+			out.write(toXML().getBytes());
+			out.close();
+
+			URL sourceURL = new URL(source);
+			HttpURLConnection conn = (HttpURLConnection) sourceURL.openConnection();
+
+			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+				throw new ParseException("Cannot Connect to Source : "
+						+ sourceURL);
+			}
+
+			InputStream in = conn.getInputStream();
+			out = new FileOutputStream(dir + fileName + ".html");
+
+			for (int next = in.read(); next >= 0; next = in.read()) {
+				out.write((byte) next);
+			}
+
+			out.close();
+			conn.disconnect();
+
+			return fileName;
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return 题目和正文
+	 */
+	@Override
+	public String toString() {
+		return title + '\n' + content;
+	}
+
+	public int getFrequency(String word) {
+		int freq = 0;
+		String text = toString();
+		int index = -1;
+		
+		while ((index = text.indexOf(word, index + 1)) >= 0) {
+			freq++;
+		}
+		
+		return freq;
+	}
+
+	public Set<String> getKeys() {
+		return keys;
+	}
+
+	/**
+	 * @return 该文章在语料库中的序号
+	 */
+	public int getIndex() {
+		return index;
+	}
+
+	protected void setIndex(int i) {
+		index = i;
+	}
+
+	public String getCorpusName() {
+		return corpusName;
+	}
+	
+	public void setCorpusName(String corpusName) {
+		this.corpusName = corpusName;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setSummary(String summary) {
+		this.summary = summary;
+	}
+
+	public void setContent(Content content) {
+		this.content = content;
+	}
+
+	public void setKeys(Set<String> keys) {
+		this.keys = keys;
+	}
+
+	public void setDate(Date d) {
+		this.d = d;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+}
+
+	

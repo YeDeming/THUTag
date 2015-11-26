@@ -1,0 +1,210 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Vector;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.matrix.NormalMatrix;
+import org.thunlp.matrix.pagerank.PageRank;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+
+public class TextRankKE implements TagSuggest {
+	private static Logger LOG = Logger.getAnonymousLogger();
+
+	private WordFeatureExtractor extractor = null;
+	private Lexicon wordLex = null;
+
+	private Properties config = new Properties();
+	private static List<WeightString> EMPTY_SUGGESTION = new LinkedList<WeightString>();
+
+	private HashMap<Integer, String> bookMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> idMap = new HashMap<String, Integer>();
+	private HashMap<Integer, String> bookTagMap = new HashMap<Integer, String>();
+
+	@Override
+	public void feedback(Post p) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void loadModel(String modelPath) throws IOException {
+		// TODO Auto-generated method stub
+
+		// Read book.vcb
+		String bookFile = modelPath + File.separator + "book.vcb";
+		BufferedReader book = new BufferedReader(new InputStreamReader(
+				new FileInputStream(bookFile), "UTF-8"));
+		String bookLine;
+		while ((bookLine = book.readLine()) != null) {
+			String[] datas = bookLine.split(" ");
+			bookMap.put(Integer.parseInt(datas[0]), datas[1]);
+			idMap.put(datas[1], Integer.parseInt(datas[0]));
+		}
+		book.close();
+
+		// Read bookTag.vcb
+		String tagFile = modelPath + File.separator + "bookTag.vcb";
+		BufferedReader bookTag = new BufferedReader(new InputStreamReader(
+				new FileInputStream(tagFile), "UTF-8"));
+		String tagLine;
+		while ((tagLine = bookTag.readLine()) != null) {
+			String[] datas = tagLine.split(" ");
+			bookTagMap.put(Integer.parseInt(datas[0]), datas[1]);
+		}
+		bookTag.close();
+
+		// read wordlex
+		wordLex = new Lexicon();
+		String input = modelPath + "/wordlex";
+		File cachedWordLexFile = new File(input);
+		if (cachedWordLexFile.exists()) {
+			LOG.info("Use cached lexicons");
+			wordLex.loadFromFile(cachedWordLexFile);
+		}
+	}
+
+	@Override
+	public void setConfig(Properties config) {
+		// TODO Auto-generated method stub
+		this.config = config;
+		extractor = new WordFeatureExtractor(config);
+	}
+
+	public void addEdge(NormalMatrix matrix, Vector<Integer> v, int start,
+			int end) {
+		for (int i = start; i < end; i++) {
+			for (int j = i + 1; j <= end; j++) {
+				matrix.add(v.get(i), v.get(j), 1);
+				matrix.add(v.get(j), v.get(i), 1);
+			}
+		}
+	}
+
+	@Override
+	public List<WeightString> suggest(Post p, StringBuilder explain) {
+		// TODO Auto-generated method stub
+
+		List<WeightString> tags = new ArrayList<WeightString>();
+
+		String[] words = extractor.extractKeyword((KeywordPost) p, true, false,
+				false);
+		Counter<String> termFreq = new Counter<String>();
+
+		// calculate the word tf
+		HashMap<String, Integer> textMap = new HashMap<String, Integer>();
+		Vector<Integer> textWordId = new Vector<Integer>();
+		int num = 0;
+
+		for (String word : words) {
+			if (idMap.containsKey(word)) {
+				termFreq.inc(word, 1);
+				if (!textMap.containsKey(word)) {
+					textMap.put(word, num);
+					textWordId.add(num);
+					num++;
+				} else {
+					textWordId.add(textMap.get(word));
+				}
+			}
+		}
+
+		// calculate the TextRank value
+
+		NormalMatrix matrix = new NormalMatrix(num, num);
+		int window = 10;
+		int len = textWordId.size();
+		if (len < window) {
+			for (int i = 1; i < len; i++) {
+				addEdge(matrix, textWordId, 0, i);
+			}
+			for (int i = 1; i < len - 1; i++) {
+				addEdge(matrix, textWordId, i, len - 1);
+			}
+		} else {
+			for (int i = 1; i < window - 1; i++) {
+				addEdge(matrix, textWordId, 0, i);
+			}
+			for (int i = 0; i <= len - window; i++) {
+				addEdge(matrix, textWordId, i, i + window - 1);
+			}
+			for (int i = len - window + 1; i < len - 1; i++) {
+				addEdge(matrix, textWordId, i, len - 1);
+			}
+		}
+
+		PageRank.prepareMatrix(matrix);
+		double rankValue[] = PageRank.pageRank(matrix, 100);
+
+		Iterator<Entry<String, Long>> iter = termFreq.iterator();
+		while (iter.hasNext()) {
+			Entry<String, Long> e = iter.next();
+			String word = e.getKey();
+			int id = idMap.get(word);
+			int textId = textMap.get(word);
+			double rank = rankValue[textId];
+			tags.add(new WeightString(word, rank));
+		}
+
+		// ranking
+		Collections.sort(tags, new Comparator<WeightString>() {
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+
+		return tags;
+	}
+
+	public static void main(String[] args) throws IOException {
+		SMTTagSuggest smt = new SMTTagSuggest();
+		smt.loadModel("/home/cxx/smt/sample");
+		RecordReader reader = new RecordReader("/home/cxx/smt/sample/test.dat");
+		BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream("/home/cxx/smt/sample/suggest"), "UTF-8"));
+		JsonUtil J = new JsonUtil();
+		List<WeightString> tags;
+		while (reader.next()) {
+			DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+			tags = smt.suggest(p, null);
+			int counter = 0;
+			for (WeightString s : tags) {
+				outTag.write(s.toString() + " ");
+				counter++;
+				if (counter == 10)
+					break;
+			}
+			outTag.newLine();
+			outTag.flush();
+		}
+		reader.close();
+		outTag.close();
+	}
+
+}

@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 26
+/svn/!svn/ver/4029/exp/cxx
+END
+ONEJAR.MF
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/4226/exp/cxx/ONEJAR.MF
+END
+tam_test
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/4226/exp/cxx/tam_test
+END
+crm_test
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/4226/exp/cxx/crm_test
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/4226/exp/cxx/.project
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/4226/exp/cxx/README
+END
+build.xml
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/4226/exp/cxx/build.xml
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/4226/exp/cxx/.classpath
+END

@@ -1,0 +1,40 @@
+package org.thunlp.tagsuggest.dataset;
+
+import java.util.Map.Entry;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.io.TextFileWriter;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.Flags;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tool.GenericTool;
+
+public class GetTimestampDistribution implements GenericTool {
+  JsonUtil J = new JsonUtil();
+  public static long SECONDS_PER_DAY = 3600L * 24L;
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.add("output");
+    flags.parseAndCheck(args);
+    
+    RecordReader reader = new RecordReader(flags.getString("input"));
+    Counter<Long> counter = new Counter<Long>();
+    while (reader.next()) {
+      Post p = J.fromJson(reader.value(), Post.class);
+      long day = p.getTimestamp() / SECONDS_PER_DAY;
+      counter.inc(day, 1);
+    }
+    reader.close();
+    
+    TextFileWriter w = new TextFileWriter(flags.getString("output"));
+    for (Entry<Long, Long> e : counter) {
+      w.writeLine(e.getKey() + " " + e.getValue());
+    }
+    w.close();
+  }
+
+}

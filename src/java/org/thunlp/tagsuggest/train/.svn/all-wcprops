@@ -1,0 +1,161 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train
+END
+TrainTagAllocationModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainTagAllocationModel.java
+END
+TrainSMT.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMT.java
+END
+TagUserGraphBuilder.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TagUserGraphBuilder.java
+END
+TrainSMTWithPost.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTWithPost.java
+END
+TrainSampleSMT.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSampleSMT.java
+END
+TrainSMTKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTKeyword.java
+END
+TrainKETitleInstead.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4264/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainKETitleInstead.java
+END
+TrainSMTKeywordTitle.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTKeywordTitle.java
+END
+TrainNoiseTagLdaModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainNoiseTagLdaModel.java
+END
+TrainFDT.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainFDT.java
+END
+TrainTagLdaModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainTagLdaModel.java
+END
+TrainSMTwithDic.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTwithDic.java
+END
+TrainSMTTag101.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTTag101.java
+END
+TrainPlainLDA.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainPlainLDA.java
+END
+TrainNoiseKeywordLdaModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainNoiseKeywordLdaModel.java
+END
+TrainSMTKeywordTitleSplit.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTKeywordTitleSplit.java
+END
+TrainSMTKeywordSummary.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTKeywordSummary.java
+END
+TrainNaiveBayes.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainNaiveBayes.java
+END
+TrainKnn.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainKnn.java
+END
+TrainKEAll.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/4263/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainKEAll.java
+END
+TrainPlainLDAKeyword.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainPlainLDAKeyword.java
+END
+TrainKESummarySplit.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainKESummarySplit.java
+END
+TrainTAMOnDisk.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainTAMOnDisk.java
+END
+TrainExpandRank.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainExpandRank.java
+END
+TrainTFIDF.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainTFIDF.java
+END
+TrainSMTTf.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/4226/exp/cxx/src/java/org/thunlp/tagsuggest/train/TrainSMTTf.java
+END

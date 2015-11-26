@@ -1,0 +1,453 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+
+public class SMTKETitleLDA implements TagSuggest {
+	private static Logger LOG = Logger.getAnonymousLogger();
+
+	private WordFeatureExtractor extractor = null;
+	private Lexicon wordLex = null;
+
+	private Properties config = new Properties();
+	private static List<WeightString> EMPTY_SUGGESTION = new LinkedList<WeightString>();
+	private Random random = new Random();
+
+	private HashMap<Integer, String> bookMap = new HashMap<Integer, String>();
+	private HashMap<String, Integer> idMap = new HashMap<String, Integer>();
+	private HashMap<Integer, String> bookTagMap = new HashMap<Integer, String>();
+
+	private HashMap<String, Integer> df = new HashMap<String, Integer>();
+
+	private HashMap<Integer, HashMap<Integer, Double>> proTable = new HashMap<Integer, HashMap<Integer, Double>>();
+	private HashMap<Integer, HashMap<Integer, Double>> inverseTable = new HashMap<Integer, HashMap<Integer,Double>>();
+	
+	@Override
+	public void feedback(Post p) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void loadModel(String modelPath) throws IOException {
+		// TODO Auto-generated method stub
+
+		// Read book.vcb
+		String bookFile = modelPath + File.separator + "book.vcb";
+		BufferedReader book = new BufferedReader(new InputStreamReader(
+				new FileInputStream(bookFile), "UTF-8"));
+		String bookLine;
+		while ((bookLine = book.readLine()) != null) {
+			String[] datas = bookLine.split(" ");
+			bookMap.put(Integer.parseInt(datas[0]), datas[1]);
+			idMap.put(datas[1], Integer.parseInt(datas[0]));
+			df.put(datas[1], Integer.parseInt(datas[2]));
+		}
+		book.close();
+
+		// Read bookTag.vcb
+		String tagFile = modelPath + File.separator + "bookTag.vcb";
+		BufferedReader bookTag = new BufferedReader(new InputStreamReader(
+				new FileInputStream(tagFile), "UTF-8"));
+		String tagLine;
+		while ((tagLine = bookTag.readLine()) != null) {
+			String[] datas = tagLine.split(" ");
+			bookTagMap.put(Integer.parseInt(datas[0]), datas[1]);
+		}
+		bookTag.close();
+
+		// Read *.t1.5
+		File dir = new File(modelPath);
+		Filter filter = new Filter("t1.5");
+		String files[] = dir.list(filter);
+		if (files.length == 0) {
+			System.out.println("*.t1.5 not exist");
+			LOG.info("*.t1.5 not exist");
+		}
+		else{
+			String word2Tag;
+			String tag2Word;
+			if(files[0].compareTo(files[1]) < 0){
+				word2Tag = files[0];
+				tag2Word = files[1];
+			}
+			else{
+				word2Tag = files[1];
+				tag2Word = files[0];
+			}
+			
+			BufferedReader pro = new BufferedReader(new InputStreamReader(
+					new FileInputStream(modelPath + File.separator +  word2Tag),
+					"UTF-8"));
+			String proLine;
+			while ((proLine = pro.readLine()) != null) {
+				String[] data = proLine.split(" ");
+				if (data.length != 3)
+					continue;
+				int first = Integer.parseInt(data[0]);
+				int second = Integer.parseInt(data[1]);
+				double probability = Double.parseDouble(data[2]);
+				if (first == 0 || second == 0) {
+					continue;
+				}
+				if (proTable.containsKey(first)) {
+					proTable.get(first).put(second, probability);
+				} else {
+					HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+					tmp.put(second, probability);
+					proTable.put(first, tmp);
+				}
+			}
+			pro.close();
+			/*
+			pro = new BufferedReader(new InputStreamReader(
+					new FileInputStream(modelPath + File.separator + tag2Word),
+					"UTF-8"));
+			while ((proLine = pro.readLine()) != null) {
+				String[] data = proLine.split(" ");
+				if (data.length != 3)
+					continue;
+				int first = Integer.parseInt(data[0]);
+				int second = Integer.parseInt(data[1]);
+				double probability = Double.parseDouble(data[2]);
+				if (first == 0 || second == 0) {
+					continue;
+				}
+				if (inverseTable.containsKey(first)) {
+					inverseTable.get(first).put(second, probability);
+				} else {
+					HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+					tmp.put(second, probability);
+					inverseTable.put(first, tmp);
+				}
+				
+			}
+			pro.close();
+			*/
+		}
+		
+		
+		// Read ti.fianl
+		Filter filter2 = new Filter("cxx.ti.final");
+		String files2[] = dir.list(filter2);
+		if(files2.length == 0){
+			System.out.println("*.ti.final not exist");
+			LOG.info("*.ti.final not exist");
+		}
+		else{
+			String word2Tag;
+			String tag2Word;
+			if(files2[0].compareTo(files2[1]) < 0){
+				word2Tag = files2[0];
+				tag2Word = files2[1];
+			}
+			else{
+				word2Tag = files2[1];
+				tag2Word = files2[0];
+			}
+			
+			BufferedReader inverse = new BufferedReader(
+					new InputStreamReader(new FileInputStream(modelPath + File.separator + word2Tag),"UTF-8"));
+			String line;
+			while((line = inverse.readLine()) != null){
+				String[] data = line.split(" ");
+				if(data.length != 3) continue;
+				int first = Integer.parseInt(data[0]);
+				int second = Integer.parseInt(data[1]);
+				double probability = Double.parseDouble(data[2]);
+				if(first == 0 || second == 0){
+					continue;
+				}
+				if(inverseTable.containsKey(first)){
+					inverseTable.get(first).put(second, probability);
+				}
+				else{
+					HashMap<Integer, Double> tmp = new HashMap<Integer, Double>();
+					tmp.put(second, probability);
+					inverseTable.put(first, tmp);
+				}
+			}
+			inverse.close();
+		}
+		
+		
+		// read wordlex
+		wordLex = new Lexicon();
+		String input = modelPath+"/wordlex";
+		File cachedWordLexFile = new File(input);
+		if (cachedWordLexFile.exists()) {
+			LOG.info("Use cached lexicons");
+			wordLex.loadFromFile(cachedWordLexFile);
+		}
+	}
+
+	@Override
+	public void setConfig(Properties config) {
+		// TODO Auto-generated method stub
+		this.config = config;
+		extractor = new WordFeatureExtractor(config);
+	}
+
+	@Override
+	public List<WeightString> suggest(Post p, StringBuilder explain) {
+		// TODO Auto-generated method stub
+
+		HashMap<Integer, Double> wordIdf = new HashMap<Integer, Double>();
+		HashMap<Integer, HashMap<Integer, Double>> LDA = new HashMap<Integer, HashMap<Integer,Double>>();
+		
+		//String[] words = extractor.extract(p);
+		String[] words = extractor.extractKeyword((KeywordPost)p, true, true, true);
+		
+		HashMap<Integer, Double> proMap = new HashMap<Integer, Double>();
+		Vector<Integer> tmpList = new Vector<Integer>();
+		Vector<Double> tmpProb = new Vector<Double>();
+		Vector<Integer> wordList = new Vector<Integer>();
+		Vector<Integer> tagList = new Vector<Integer>();
+		Vector<Double> tagProb = new Vector<Double>();
+		for(String word : words) {
+			double idf = 0.0;
+			if(wordLex.getWord(word) != null){
+				idf = Math.log((double) wordLex.getNumDocs()
+					/ (double) wordLex.getWord(word).getDocumentFrequency());
+			}
+			else{
+				continue;
+			}
+			if(!idMap.containsKey(word)) continue;
+			
+			int id = idMap.get(word);
+			
+			if (proTable.containsKey(id)) {
+				tmpList.clear();
+				tmpProb.clear();
+				tagProb.clear();
+				
+				if(!wordIdf.containsKey(id)){
+					wordIdf.put(id, idf);
+				}
+				
+				double totalProb = 0.0;
+				
+				if(!LDA.containsKey(id)){
+					HashMap<Integer, Double> tmpMap = new HashMap<Integer, Double>();
+					tmpMap.putAll(proTable.get(id));
+					LDA.put(id, tmpMap);
+				}
+				
+				for (Entry<Integer, Double> ee : proTable.get(id).entrySet()) {
+					int tagId = ee.getKey();
+					double pro = ee.getValue();
+					
+					tmpList.add(tagId);
+					tmpProb.add(pro);
+					totalProb += pro;
+				}
+				// normalized
+				for(int i = 0; i < tmpProb.size(); i ++){
+					tagProb.add(tmpProb.get(i) / totalProb);
+				}
+				// sample the tags
+				double num = random.nextDouble();
+				double sum = 0.0;
+				int j = 0;
+				for (j = 0; j < tagProb.size(); j++) {
+					sum += tagProb.elementAt(j);
+					if (sum >= num)
+						break;
+				}
+				int tagId = tmpList.get(j);
+				wordList.add(id);
+				tagList.add(tagId);
+				if (proMap.containsKey(tagId)) {
+					double tmp = proMap.get(tagId);
+					tmp += idf;
+					proMap.put(tagId, tmp);
+				} else {
+					proMap.put(tagId, idf);
+				}
+			}
+		}
+		
+		// iteration 0-39
+		// burning in
+		int count = 0;
+		while(count < 40){
+			count ++;
+			for(int i = 0; i < wordList.size(); i ++){
+				tmpList.clear();
+				tmpProb.clear();
+				tagProb.clear();
+				int id = wordList.get(i);
+				double idf = wordIdf.get(id);
+				
+				int preTagId = tagList.get(i);
+				double tmp = proMap.get(preTagId) - idf;
+				proMap.put(preTagId, tmp);
+				
+				double totalProb = 0.0;
+				for(Entry<Integer, Double> ee : LDA.get(id).entrySet()){
+					int tagId = ee.getKey();
+					if(proMap.containsKey(tagId)){
+						//double newPro = ee.getValue() * proMap.get(tagId);
+						if(inverseTable.containsKey(tagId) && inverseTable.get(tagId).containsKey(id)){
+							double newPro = inverseTable.get(tagId).get(id) * proMap.get(tagId);
+							ee.setValue(newPro);
+							tmpList.add(tagId);
+							tmpProb.add(newPro);
+							totalProb += newPro;
+						}
+					}
+				}
+				// normalized
+				for(int k = 0; k < tmpProb.size(); k ++){
+					tagProb.add(tmpProb.get(k) / totalProb);
+				}
+				// sample the tags
+				double num = random.nextDouble();
+				double sum = 0.0;
+				int j = 0;
+				for (j = 0; j < tagProb.size(); j++) {
+					sum += tagProb.elementAt(j);
+					if (sum >= num)
+						break;
+				}
+				j = (j < tagProb.size()) ? j : tagProb.size() - 1;
+				int tagId = tmpList.get(j);
+				tagList.setElementAt(new Integer(tagId), i);
+				double newPro = proMap.get(tagId) + idf;
+				proMap.put(tagId, newPro);
+			}
+		}
+		
+		//itertion 40 - 49
+		HashMap<Integer, Double> record = new HashMap<Integer, Double>();
+		while(count < 50){
+			count++;
+			for(int i = 0; i < wordList.size(); i ++){
+				tmpList.clear();
+				tmpProb.clear();
+				tagProb.clear();
+				int id = wordList.get(i);
+				double idf = wordIdf.get(id);
+				
+				int preTagId = tagList.get(i);
+				double tmp = proMap.get(preTagId) - idf;
+				proMap.put(preTagId, tmp);
+				
+				double totalProb = 0.0;
+				for(Entry<Integer, Double> ee : LDA.get(id).entrySet()){
+					int tagId = ee.getKey();
+					if(proMap.containsKey(tagId)){
+						if(inverseTable.containsKey(tagId) && inverseTable.get(tagId).containsKey(id)){
+							double newPro = inverseTable.get(tagId).get(id) * proMap.get(tagId);
+							ee.setValue(newPro);
+							tmpList.add(tagId);
+							tmpProb.add(newPro);
+							totalProb += newPro;
+						}
+					}
+				}
+				// normalized
+				for(int k = 0; k < tmpProb.size(); k ++){
+					tagProb.add(tmpProb.get(k) / totalProb);
+				}
+				// sample the tags
+				double num = random.nextDouble();
+				double sum = 0.0;
+				int j = 0;
+				for (j = 0; j < tagProb.size(); j++) {
+					sum += tagProb.elementAt(j);
+					if (sum >= num)
+						break;
+				}
+				j = (j < tagProb.size()) ? j : tagProb.size() - 1;
+				int tagId = tmpList.get(j);
+				tagList.setElementAt(new Integer(tagId), i);
+				double newPro = proMap.get(tagId) + idf;
+				proMap.put(tagId, newPro);
+			}
+			for(Entry<Integer, Double> e:proMap.entrySet()){
+				int tagId = e.getKey();
+				double pro = e.getValue();
+				if(record.containsKey(tagId)){
+					double tmp = record.get(tagId) + pro;
+					record.put(tagId, tmp);
+				}
+				else{
+					record.put(tagId, pro);
+				}
+			}
+		}
+		
+		// ranking
+		List<WeightString> tags = new ArrayList<WeightString>();
+		for (Entry<Integer, Double> e : record.entrySet()) {
+			tags.add(new WeightString(bookTagMap.get(e.getKey()), e
+							.getValue()));
+		}
+		Collections.sort(tags, new Comparator<WeightString>() {
+
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+		
+		return tags;
+	}
+
+	public static void main(String[] args) throws IOException {
+		SMTTagSuggest smt = new SMTTagSuggest();
+		smt.loadModel("/home/cxx/smt/sample");
+		RecordReader reader = new RecordReader("/home/cxx/smt/sample/test.dat");
+		BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream("/home/cxx/smt/sample/suggest"), "UTF-8"));
+		JsonUtil J = new JsonUtil();
+		List<WeightString> tags;
+		while (reader.next()) {
+			DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+			tags = smt.suggest(p, null);
+			int counter = 0;
+			for (WeightString s : tags) {
+				outTag.write(s.toString() + " ");
+				counter++;
+				if (counter == 10)
+					break;
+			}
+			outTag.newLine();
+			outTag.flush();
+		}
+		reader.close();
+		outTag.close();
+	}
+
+}

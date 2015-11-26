@@ -1,0 +1,131 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.JsonUtil;
+import org.thunlp.io.RecordReader;
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+import org.thunlp.text.Lexicon;
+
+public class TFIDFKeywordExtraction implements TagSuggest {
+	private static Logger LOG = Logger.getAnonymousLogger();
+
+	private WordFeatureExtractor extractor = null;
+	private Lexicon wordLex = null;
+
+	private Properties config = new Properties();
+	private static List<WeightString> EMPTY_SUGGESTION = new LinkedList<WeightString>();
+
+	@Override
+	public void feedback(Post p) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void loadModel(String modelPath) throws IOException {
+		// TODO Auto-generated method stub
+
+		// read wordlex
+		wordLex = new Lexicon();
+		String input = modelPath + "/wordlex";
+		File cachedWordLexFile = new File(input);
+		if (cachedWordLexFile.exists()) {
+			LOG.info("Use cached lexicons");
+			wordLex.loadFromFile(cachedWordLexFile);
+		}
+	}
+
+	@Override
+	public void setConfig(Properties config) {
+		// TODO Auto-generated method stub
+		this.config = config;
+		extractor = new WordFeatureExtractor(config);
+	}
+
+	@Override
+	public List<WeightString> suggest(Post p, StringBuilder explain) {
+		// TODO Auto-generated method stub
+
+		List<WeightString> tags = new ArrayList<WeightString>();
+
+		String[] words = extractor.extractKeyword((KeywordPost) p, true, true,true);
+		Counter<String> termFreq = new Counter<String>();
+		// calculate the word tfidf
+		for (String word : words) {
+			termFreq.inc(word, 1);
+		}
+		Iterator<Entry<String, Long>> iter = termFreq.iterator();
+		while (iter.hasNext()) {
+			Entry<String, Long> e = iter.next();
+			String word = e.getKey();
+			double tf = (double) e.getValue() / (double) words.length;
+			// double idf = (double)D/(double)df.get(word);
+			double idf = 0.0;
+			if (wordLex.getWord(word) != null) {
+				idf = Math
+						.log((double) wordLex.getNumDocs()
+								/ (double) wordLex.getWord(word)
+										.getDocumentFrequency());
+			} else {
+				continue;
+			}
+			tags.add(new WeightString(word, tf * idf));
+		}
+
+		// ranking
+		Collections.sort(tags, new Comparator<WeightString>() {
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+
+		return tags;
+	}
+
+	public static void main(String[] args) throws IOException {
+		SMTTagSuggest smt = new SMTTagSuggest();
+		smt.loadModel("/home/cxx/smt/sample");
+		RecordReader reader = new RecordReader("/home/cxx/smt/sample/test.dat");
+		BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream("/home/cxx/smt/sample/suggest"), "UTF-8"));
+		JsonUtil J = new JsonUtil();
+		List<WeightString> tags;
+		while (reader.next()) {
+			DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+			tags = smt.suggest(p, null);
+			int counter = 0;
+			for (WeightString s : tags) {
+				outTag.write(s.toString() + " ");
+				counter++;
+				if (counter == 10)
+					break;
+			}
+			outTag.newLine();
+			outTag.flush();
+		}
+		reader.close();
+		outTag.close();
+	}
+
+}

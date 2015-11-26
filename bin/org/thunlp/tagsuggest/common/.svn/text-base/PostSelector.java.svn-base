@@ -1,0 +1,6 @@
+package org.thunlp.tagsuggest.common;
+
+// Decide what posts should be used.
+public interface PostSelector {
+  boolean shouldUse(Post p);
+}

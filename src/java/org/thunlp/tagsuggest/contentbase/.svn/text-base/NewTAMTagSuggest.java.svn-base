@@ -1,0 +1,195 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.StringUtil;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.FeatureExtractor;
+import org.thunlp.tagsuggest.common.GenerativeTagSuggest;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.tagsuggest.common.WordFeatureExtractor;
+
+public class NewTAMTagSuggest implements TagSuggest, GenerativeTagSuggest {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  private TagAllocationModel model;
+  private FeatureExtractor extractor = new WordFeatureExtractor();
+  private Properties config = null;
+  private int numTags = 5;
+  private int numSamples = 100;
+  private boolean useNoise = false;
+
+  @Override
+  public void feedback(Post p) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void loadModel(String modelPath) throws IOException {
+    FileInputStream input = new FileInputStream(modelPath);
+    model = new TagAllocationModel(input);
+    input.close();
+    model.setLocked(true);
+  }
+
+  @Override
+  public void setConfig(Properties config) {
+    extractor = new WordFeatureExtractor(config);
+    numTags = Integer.parseInt(config.getProperty("num_tags", "5"));
+    numSamples = Integer.parseInt(config.getProperty("num_samples", "100"));
+    useNoise = config.getProperty("usenoise", "false").equals("true");
+    this.config = config;
+  }
+
+  private void addExplain(StringBuilder buffer, String text) {
+    if (buffer != null) {
+      buffer.append(text);
+    }
+  }
+
+  @Override
+  public List<WeightString> suggest(Post p, StringBuilder explain) {
+    addExplain(explain, "<div class='explain'>");
+    addExplain(explain, "<div>suggest for " + p.getContent() + "</div>");
+    String [] features = extractor.extract(p);
+    Counter<String> featureSet = new Counter<String>();
+    for (String feature : features) {
+      featureSet.inc(feature, 1);
+    }
+    double doclen = featureSet.total();
+    addExplain(explain, "features: ");
+    if (explain != null) {
+      for (String feature : features) {
+        if (model.getRelatedTags(feature).size() > 0) {
+          addExplain(explain, "<span style='color:red'>" + feature + "</span> ");
+        } else {
+          addExplain(explain, feature + " ");
+        }
+      }
+    }
+    addExplain(explain, "<br>");
+    List<WeightString> results = new ArrayList<WeightString>();
+
+    double largestWeight = 0;
+    for (int i = 0; i < numTags; i++) {
+      List<WeightString> reasons = new LinkedList<WeightString>();
+      ////////////////////////////////////////////////////////////
+      WeightString tag = getBestTag(featureSet, reasons);
+      ////////////////////////////////////////////////////////////
+      if (tag == null)
+        break;
+      tag.weight *= featureSet.total() / doclen;
+      if (tag.weight > largestWeight)
+        largestWeight = tag.weight;
+      results.add(tag);
+      
+      Collections.sort(reasons, WeightString.REVERSE_COMPARATOR);
+      double max = reasons.get(0).getWeight();
+      for (WeightString reason : reasons) {
+        long origCount = featureSet.get(reason.getText());
+        long delta =  -(long)Math.ceil(origCount * reason.getWeight() / max);
+        if (origCount + delta < 0) {
+          delta += 1;
+        }
+        featureSet.inc(reason.getText(), delta);
+      }
+      
+      if (explain != null) {
+        addExplain(explain, "<div>");
+        if (reasons == null) {
+          addExplain(explain, "(null) =&gt; " + tag + "<br>");
+        } else {
+          addExplain(explain, "(" + StringUtil.join(reasons, ",") + ") =&gt; " + tag);
+          addExplain(explain, " nr:" + model.prt(model.NOISE, tag.text));
+        }
+        addExplain(explain, "</div>");
+      }
+    }
+
+    Collections.sort(results, WeightString.REVERSE_COMPARATOR);
+    return results;
+  }
+
+  private WeightString getBestTag(
+      Counter<String> featureSet,
+      List<WeightString> reasons) {
+    Map<String, Double> tagweights = new Hashtable<String, Double>();
+    double norm = 0;
+    for (Entry<String, Long> feature : featureSet) {
+      norm += model.prw(feature.getKey()) * feature.getValue();
+    }
+    for (Entry<String, Long> feature  : featureSet) {
+      Set<String> ctags = model.getRelatedTags(feature.getKey());
+      double prd = model.prw(feature.getKey()) * feature.getValue() / norm;
+      for (String tag : ctags) {
+        if (model.prt(model.NOISE, tag) > 0.1)
+          continue;
+        double ptr = model.ptr(tag, feature.getKey());
+        double ptf = ptr * prd * (1 - model.pcm());
+        Double w = tagweights.get(tag);
+        if (w == null) {
+          w = 0.0;
+        }
+        tagweights.put(tag, w + ptf);
+      }
+    }
+    if (useNoise) {
+      for (String tag : model.getRelatedTags(TagAllocationModel.NOISE)) {
+        double ptr = model.ptr(tag, TagAllocationModel.NOISE);
+        double ptf = ptr * model.pcm();
+        Double w = tagweights.get(tag);
+        if (w == null) {
+          w = 0.0;
+        }
+        tagweights.put(tag, w + ptf);
+      }
+    }
+    if (tagweights.size() == 0)
+      return null;
+    List<WeightString> rank = new ArrayList<WeightString>();
+    for (Entry<String, Double> e : tagweights.entrySet()) {
+      rank.add(new WeightString(e.getKey(), e.getValue()));
+    }
+    Collections.sort(rank, WeightString.REVERSE_COMPARATOR);
+    WeightString tag = rank.get(0);
+    if (reasons != null) {
+      Set<String> relatedReasons = model.getRelatedWords(tag.text);
+      for (Entry<String, Long> feature  : featureSet) {
+        if (!relatedReasons.contains(feature.getKey()))
+          continue;
+        double prd = model.prw(feature.getKey()) * feature.getValue() / norm;
+        double ptr = model.ptr(tag.text, feature.getKey());
+        double ptf = ptr * prd * (1 - model.pcm());
+        reasons.add(new WeightString(feature.getKey(), ptf));
+      }
+    }
+    return tag;
+  }
+
+  @Override
+  public void likelihood(Post p, List<Double> likelihoods) {
+    String [] words = extractor.extract(p);
+    for (String tag : p.getTags()) {
+      likelihoods.add(model.likelihood(words, tag));
+    }
+  }
+
+
+  public TagAllocationModel getModel() {
+    return model;
+  }
+}

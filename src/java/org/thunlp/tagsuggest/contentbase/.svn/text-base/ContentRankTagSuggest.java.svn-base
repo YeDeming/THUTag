@@ -1,0 +1,315 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Vector;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import org.thunlp.io.GzipTextFileReader;
+import org.thunlp.matrix.MatrixInterface;
+import org.thunlp.matrix.SparseMatrix;
+import org.thunlp.matrix.pagerank.DiffusionRank;
+import org.thunlp.matrix.pagerank.PageRank;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.TagSuggest;
+import org.thunlp.tagsuggest.train.TagUserGraphBuilder.Node;
+
+public class ContentRankTagSuggest implements TagSuggest {
+  private Map<String, Node> tagUserGraph = null;
+  private TagSuggest contentTagSuggester = null;
+  private static Logger LOG = Logger.getAnonymousLogger();
+  private int numCandidates = 10;
+  private String ranker = "";
+  private int expandLevel = 1;
+  private double alpha = 0.0;
+  private double gamma = 0.0;
+  private int numIterations = 0;
+  private boolean weightEdges = false;
+  private boolean useUserNodes = true;
+  private boolean verbose = false;
+  
+  @Override
+  public void feedback(Post p) {
+    // TODO Auto-generated method stub
+
+  }
+
+  /**
+   * Load tag-user graph into memory.
+   */
+  @Override
+  public void loadModel(String modelPath) throws IOException {
+    // TODO Auto-generated method stub
+    File graphFile = new File(modelPath);
+    tagUserGraph = loadGraph(graphFile);
+  }
+
+  @Override
+  public void setConfig(Properties config) {
+    String className = config.getProperty("contentsuggester");
+    try {
+      contentTagSuggester = (TagSuggest) Class.forName(className).newInstance();
+    } catch (InstantiationException e) {
+      LOG.severe(e.getMessage());
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      LOG.severe(e.getMessage());
+      e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+      LOG.severe(e.getMessage());
+      e.printStackTrace();
+    }
+    try {
+      contentTagSuggester.loadModel(config.getProperty("contentmodel"));
+      contentTagSuggester.setConfig(config);
+    } catch (IOException e) {
+      LOG.severe(e.getMessage());
+      e.printStackTrace();
+    }
+    numCandidates = Integer.parseInt(config.getProperty("numcandidates", "10"));
+    expandLevel = Integer.parseInt(config.getProperty("expandlevel", "1"));
+    ranker = config.getProperty("ranker", "pagerank");
+    alpha = Double.parseDouble(config.getProperty("alpha", "0.85"));
+    gamma = Double.parseDouble(config.getProperty("gamma", "10"));
+    numIterations = Integer.parseInt(config.getProperty("niters", "30"));
+    useUserNodes = config.getProperty("usernodes", "false").equals("true");
+    verbose = config.getProperty("verbose", "false").equals("true");
+    weightEdges = config.getProperty("weightedges", "false").equals("true");
+  }
+  
+  private Node addToGraphIfMiss(String name, Map<String, Node> graph) {
+    Node n = graph.get(name);
+    if (n == null) {
+      n = new Node();
+      n.setName(name);
+      n.setType(name.startsWith("@") ? Node.TYPE_USER : Node.TYPE_TAG);
+      graph.put(name, n);
+    }
+    return n;
+  }
+
+  private Map<String, Node> loadGraph(File f) throws IOException {
+    Map<String, Node> graph = new Hashtable<String, Node>();
+    GzipTextFileReader r = new GzipTextFileReader(f);
+    String line;
+    
+    while ((line = r.readLine()) != null) {
+      String [] cols = line.split(" ");
+      Node node = addToGraphIfMiss(cols[0], graph);
+      // cols[1] is the type of node.
+      for (int i = 2; i < cols.length; i++) {
+        int p = cols[i].indexOf(":");
+        if (p > 0) {
+          Node neighbor = addToGraphIfMiss(cols[i].substring(0, p), graph);
+          double weight = Double.parseDouble(cols[i].substring(p+1));
+          node.getNeighbors().put(neighbor, weight);
+        }
+      }
+    }
+    r.close();
+    LOG.info("Load a graph of " + graph.size() + " nodes.");
+    return graph;
+  }
+
+  private MatrixInterface makeSubGraph(Vector<Node> nodes) {
+    Set<String> edgeSet = new HashSet<String>();
+    
+    MatrixInterface m = new SparseMatrix(nodes.size(), nodes.size());
+    for (int i = 0; i < nodes.size(); i++) {
+      for (Entry<Node, Double> e : nodes.get(i).getNeighbors().entrySet()) {
+        int j = nodes.indexOf(e.getKey());
+        String hash = i < j ? i+":"+j : j+":"+i;
+        if (j >= 0 && j < nodes.size() && !edgeSet.contains(hash)) {
+          double weight = weightEdges ? e.getValue() : 1.0;
+          m.add(i, j, weight);
+          m.add(j, i, weight);
+        }
+      }
+    }
+    
+    // Column-normalize the matrix.
+    PageRank.prepareMatrix(m);
+    return m;
+  }
+  
+  private void expandNeighborNodes(Vector<Node> coreNodes) {
+    Set<String> nodeSet = new HashSet<String>();
+    List<Node> toBeAdded = new LinkedList<Node>();
+    for (Node node : coreNodes) {
+      nodeSet.add(node.getName());
+    }
+    for (int i = 0; i < expandLevel; i++) {
+      toBeAdded.clear();
+      for (Node node : coreNodes) {
+        for (Entry<Node, Double> e : node.getNeighbors().entrySet()) {
+          Node toexpand = e.getKey();
+          if (toexpand.getType() == Node.TYPE_USER && !useUserNodes) 
+            continue;
+          if (!nodeSet.contains(toexpand.getName())) {
+            toBeAdded.add(toexpand);
+            nodeSet.add(toexpand.getName());
+          }
+        }
+      }
+      for (Node node : toBeAdded) {
+        coreNodes.add(node);
+      }
+    }
+  }
+
+  @Override
+  public List<WeightString> suggest(Post p, StringBuilder explain) {
+    List<WeightString> tags = contentTagSuggester.suggest(p, explain);
+    if (verbose) {
+      // Print original result.
+      LOG.info("original result:");
+      for (WeightString t : tags) {
+        LOG.info("  " + t.text + "\t" + t.weight);
+      }
+    }
+    Vector<Node> coreNodes = new Vector<Node>();
+    for (WeightString tag : tags) {
+      Node n = addToGraphIfMiss(tag.text, tagUserGraph);
+      coreNodes.add(n);
+      if (coreNodes.size() > numCandidates) 
+        break;
+    }
+    if (verbose) {
+      // Print core nodes.
+      LOG.info("core nodes DOT:\n" + makeDotCode(coreNodes));
+    }
+    int coreSize = coreNodes.size();
+    if (useUserNodes) {
+      coreNodes.add(addToGraphIfMiss("@" + p.getUserId(), tagUserGraph));
+    }
+    // Expand core nodes.
+    if (expandLevel > 0) {
+      expandNeighborNodes(coreNodes);
+      if (verbose) {
+        // Print core nodes.
+        LOG.info("expanded core nodes DOT:\n" + makeDotCode(coreNodes));
+      }
+    }
+    
+    // Make initial values.
+    double [] initialRanks = new double[coreNodes.size()];
+    double [] impacts = new double[coreNodes.size()];
+    int n = 0;
+    double meanRank = 0.0;
+    for (WeightString tag : tags) {
+      impacts[n] = tag.weight;
+      meanRank += tag.weight;
+      n++;
+      if (n >= coreSize)
+        break;
+    }
+    meanRank /= (double)n;
+    // Use mean rank as the user node's rank.
+    if (useUserNodes)
+      impacts[coreSize] = meanRank / (double)n;
+    for (int i = 0; i < initialRanks.length; i++)
+      initialRanks[i] = meanRank;
+    
+    MatrixInterface m = makeSubGraph(coreNodes);
+    double [] pr = null;
+    if (ranker.equals("pagerank")) {
+      pr = PageRank.pageRank(m, numIterations, alpha, initialRanks, impacts);
+    } else if (ranker.equals("diffusionrank")) {
+      pr = DiffusionRank.diffusionRank(
+          m, numIterations, gamma, alpha, initialRanks, impacts);
+    } else if (ranker.equals("folkrank")) {
+      // pr = FolkRank.folkRank(
+      //     m, numIterations, gamma, alpha, initialRanks, impacts);
+    } else {
+      throw new RuntimeException("no ranker named " + ranker);
+    }
+    tags.clear();
+    for (int i = 0; i < coreNodes.size(); i++) {
+      if (coreNodes.get(i).getType() == Node.TYPE_TAG) {
+        tags.add(new WeightString(coreNodes.get(i).getName(), pr[i]));
+      }
+    }
+    
+    Collections.sort(tags, new Comparator<WeightString>() {
+      @Override
+      public int compare(WeightString o1, WeightString o2) {
+        return Double.compare(o2.weight, o1.weight);
+      }  
+    });
+    if (verbose) {
+      LOG.info("ranked result:");
+      for (WeightString t : tags) {
+        LOG.info("  " + t.text + "\t" + t.weight);
+      }
+    }
+    return tags;
+  }
+  
+  @SuppressWarnings("unused")
+  private String printNodeMap(Map<Node, Double> m) {
+    StringBuilder sb = new StringBuilder();
+    for (Entry<Node, Double> e : m.entrySet()) {
+      sb.append(e.getKey().getName() + "/" + e.getValue());
+      sb.append(" ");
+    }
+    return sb.toString();
+  }
+  
+  private String makeDotCode(Vector<Node> nodes) {
+    // Get maximum edge weight.
+
+    double max = 0.0;
+    if (weightEdges) {
+      for (int i = 0; i < nodes.size(); i++) {
+        for (Entry<Node, Double> e : nodes.get(i).getNeighbors().entrySet()) {
+          int j = nodes.indexOf(e.getKey());
+          if (j >= 0 && j < nodes.size()) {
+            if (e.getValue() > max)
+              max = e.getValue();
+          }
+        }
+      }
+    }
+    
+    Set<String> edgeSet = new HashSet<String>(); 
+    StringBuilder sb = new StringBuilder();
+    sb.append("graph dotgraph {\n");
+    sb.append("  node [shape=rectangle];\n");
+    for (int i = 0; i < nodes.size(); i++) {
+      for (Entry<Node, Double> e : nodes.get(i).getNeighbors().entrySet()) {
+        int j = nodes.indexOf(e.getKey());
+        String hash = i < j ? i+":"+j : j+":"+i;
+        if (j >= 0 && j < nodes.size() && !edgeSet.contains(hash)) {
+          int weight = weightEdges ? ((int)(8 * e.getValue() / max) + 1) : 9;
+          sb.append("  \"");
+          sb.append(nodes.get(i).getName());
+          sb.append("\" -- \"");
+          sb.append(nodes.get(j).getName());
+          sb.append("\" [penwidth=3,color=\"/greys9/");
+          sb.append(weight);
+          sb.append("\"];\n");
+          edgeSet.add(hash);
+        }
+      }
+    }
+    sb.append("}\n");
+    return sb.toString();
+  }
+  
+  @SuppressWarnings("unused")
+  private String colorCode(double weight) {
+    int n = (int)((1.0 - weight) * 255.0);
+    return String.format("#%02X%02X%02X", n, n, n);
+  }
+}

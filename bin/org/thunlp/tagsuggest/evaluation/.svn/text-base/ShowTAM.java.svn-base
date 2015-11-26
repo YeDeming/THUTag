@@ -1,0 +1,43 @@
+package org.thunlp.tagsuggest.evaluation;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
+
+import org.thunlp.misc.Flags;
+import org.thunlp.misc.WeightString;
+import org.thunlp.tagsuggest.contentbase.TagAllocationModel;
+import org.thunlp.tool.GenericTool;
+
+public class ShowTAM implements GenericTool {
+  private static Logger LOG = Logger.getAnonymousLogger();
+  
+  @Override
+  public void run(String[] args) throws Exception {
+    Flags flags = new Flags();
+    flags.add("input");
+    flags.parseAndCheck(args);
+    TagAllocationModel tam =
+      new TagAllocationModel(new File(flags.getString("input")));
+    List<WeightString> list = new ArrayList<WeightString>();
+    for (String tag : tam.getAllTags()) {
+      list.add(new WeightString(tag, tam.ptr(tag, tam.NOISE)));
+    }
+    Collections.sort(list, new Comparator<WeightString>() {
+
+      @Override
+      public int compare(WeightString o1, WeightString o2) {
+        return Double.compare(o2.weight, o1.weight);
+      }
+      
+    });
+    
+    for (WeightString ws : list) {
+      System.out.println(ws.toString());
+    }
+  }
+
+}

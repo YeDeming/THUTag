@@ -1,0 +1,24 @@
+package org.thunlp.tagsuggest.contentbase;
+
+import java.util.Iterator;
+import java.util.List;
+
+public class ListDataSource<T> implements DataSource<T> {
+  private List<T> internalList = null;
+  int numIterations = 0;
+  
+  public ListDataSource(List<T> list) {
+    internalList = list;
+  }
+  
+  @Override
+  public int rewind() {
+    return numIterations++;
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return internalList.iterator();
+  }
+
+}

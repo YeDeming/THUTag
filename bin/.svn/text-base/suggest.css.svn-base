@@ -1,0 +1,92 @@
+body {
+  margin: 0px;
+  padding: 20px;
+  text-align: center;
+}
+
+#inputarea {
+  width: 800px;
+  height: 300px;
+  border: 2px solid white;
+  font-size: 16px;
+  padding:10px;
+  margin-bottom:4px;
+}
+
+#inputarea:focus {
+  outline-width: 0px;
+}
+
+#mainpanel {
+  width:800px;
+  background-color:white;
+  border: 1px solid black;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#tagbar {
+  height: 40px;
+  text-align:left;
+  border-bottom: 1px dashed grey;
+}
+
+#label {
+  line-height: 40px;
+  font-size:20px;
+  margin-left:8px;
+  font-family: Microsoft YaHei, Hei, Sans;
+  float: left;
+  padding-right: 4px;
+  border-right: 1px solid grey;
+  margin-right: 4px;
+}
+
+a {
+  color: darkblue;
+}
+
+#hidedebug {
+  display: none;
+}
+
+#suggested {
+  width: 600px;
+  background-color:darkyellow;
+  font-family: Consolas, Courier New, monospace;
+  margin-top:2px;
+  margin-left:5px;
+  text-align: left;
+  float: left;
+}
+
+#suggested div {
+  height: 30px;
+  margin: 1px;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color: black;
+  vertical-align: middle;
+  font-weight: bold;
+  display: none;
+  float:left;
+}
+
+#debuginfo {
+  display: none;
+  width: 800px;
+  background-color:lightyellow;
+  font-size: small;
+  font-family: Consolas, Courier New, monospace;
+  text-align: left;
+  padding: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.debug {
+  color: grey;
+  font-size: small;
+}
