@@ -96,6 +96,7 @@ The default path of book.model and chinese_stop_word.txt is the same with the pa
  
 If you want to run WTM/WAM/WAM*, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command. 
 
+
 ========================================================================
 
 Part VII: Input File Formats of UI && Testing a single passage
