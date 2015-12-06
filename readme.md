@@ -33,7 +33,7 @@ ant : Start a terminal in the directory "TagSuggestion/", input command "ant" an
 
 Part III: How To Run Cross-validation of THUTagSuggest
 
-Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Testing Class. (Part VII Appendix show the correspondence between Training Class and Testing Class)
+Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Testing Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
 Parameters : --dataset="Input file path"
 	      --trainer_class="Name of Training Class"
@@ -153,21 +153,24 @@ Part IX: Literature
 
 Part X: Appendix
 
-Correspondence between Training Class and Testing Class
+Correspondence between Training Class and Suggesting Class
 
-TrainExpandRank            --  ExpandRankKE </br>
-TrainKnn                   --  KnnTagSuggest </br>
-TrainNaiveBayes            --  NaiveBayesTagSuggest </br>
-TrainNoiseTagLdaModel      --  NoiseTagLadaTagSuggest </br>
-TrainPMI                   --  PMITagsuggest </br>
-TrainTagLdaModel           --  TagLdaTagSuggest </br>
-TrainTAM                   --  TAMTagSuggest </br>
-TrainTFIDF                 --  TFIDFTagSuggest </br>
-TrainTPR                   --  TPRTagSuggest </br>
-TrainWAM                   --  SMTTagSuggest </br>
-TrainWAMsample             --  SMTTagSuggest </br>
-TrainWAMWithtitleInstead   --  SMTTagSuggest </br> 
-TrainWTM                   --  SMTTagSuggest </br>
+| Training Class | Suggesting Class |
+|---|:---|
+| TrainExpandRank | ExpandRankKE |
+| TrainKnn | KnnTagSuggest |
+| TrainNaiveBayes | NaiveBayesTagSuggest |
+| TrainNoiseTagLdaModel | NoiseTagLadaTagSuggest |
+| TrainPMI | PMITagsuggest |
+| TrainTagLdaModel | TagLdaTagSuggest |
+| TrainTAM | TAMTagSuggest |
+| TrainTFIDF | TFIDFTagSuggest |
+| TrainTPR | TPRTagSuggest |
+| TrainWAM | SMTTagSuggest |
+| TrainWAMsample | SMTTagSuggest |
+| TrainWAMWithtitleInstead | SMTTagSuggest | 
+| TrainWTM | SMTTagSuggest |
+
 
 ========================================================================
 
