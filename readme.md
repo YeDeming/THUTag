@@ -155,19 +155,19 @@ Part X: Appendix
 
 Correspondence between Training Class and Testing Class
 
-TrainExpandRank            --  ExpandRankKE
-TrainKnn                   --  KnnTagSuggest
-TrainNaiveBayes            --  NaiveBayesTagSuggest
-TrainNoiseTagLdaModel      --  NoiseTagLadaTagSuggest
-TrainPMI                   --  PMITagsuggest
-TrainTagLdaModel           --  TagLdaTagSuggest
-TrainTAM                   --  TAMTagSuggest
-TrainTFIDF                 --  TFIDFTagSuggest
-TrainTPR                   --  TPRTagSuggest
-TrainWAM                   --  SMTTagSuggest.java
-TrainWAMsample.java        --  SMTTagSuggest.java
-TrainWAMWithtitleInstead   --  SMTTagSuggest.java 
-TrainWTM.java              --  SMTTagSuggest.java
+TrainExpandRank            --  ExpandRankKE </br>
+TrainKnn                   --  KnnTagSuggest </br>
+TrainNaiveBayes            --  NaiveBayesTagSuggest </br>
+TrainNoiseTagLdaModel      --  NoiseTagLadaTagSuggest </br>
+TrainPMI                   --  PMITagsuggest </br>
+TrainTagLdaModel           --  TagLdaTagSuggest </br>
+TrainTAM                   --  TAMTagSuggest </br>
+TrainTFIDF                 --  TFIDFTagSuggest </br>
+TrainTPR                   --  TPRTagSuggest </br>
+TrainWAM                   --  SMTTagSuggest </br>
+TrainWAMsample             --  SMTTagSuggest </br>
+TrainWAMWithtitleInstead   --  SMTTagSuggest </br> 
+TrainWTM                   --  SMTTagSuggest </br>
 
 ========================================================================
 
