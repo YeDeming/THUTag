@@ -33,11 +33,11 @@ ant编译 : 在TagSuggestion/目录下打开终端,输入命令 ant ,即可完�
 
 第三部分 : 如何运行交叉检验
 
-交叉检验测试单个算法 : 具体命令参考command文件,训练类与测试类一一对应.(训练类与测试类对应关系见附录)
+交叉检验测试单个算法 : 具体命令参考command文件,训练类与建议类一一对应.(训练类与建议类对应关系见附录)
 
 各个参数含义 : --dataset="输入文件路径"
 	      --trainer_class="训练类名称"
-	      --suggester_class="测试类名称"
+	      --suggester_class="建议类名称"
 	      --num_folds="输入文件分割份数"
 	      --config="参数1=值1;参数2=值2;..."(参数可以是dataType,k,numtopics,niter等等,不同模型参数不同,不输入即使用默认值)
 	      --working_dir="工作目录"
@@ -140,20 +140,24 @@ ui界面为可视化输出
 
 第十部分 : 附录
 
-训练类与测试类对应关系
+训练类与建议类对应关系
 
-TrainExpandRank            --  ExpandRankKE
-TrainKnn                   --  KnnTagSuggest
-TrainNaiveBayes            --  NaiveBayesTagSuggest
-TrainNoiseTagLdaModel      --  NoiseTagLadaTagSuggest
-TrainPMI                   --  PMITagsuggest
-TrainTagLdaModel           --  TagLdaTagSuggest
-TrainTAM                   --  TAMTagSuggest
-TrainTFIDF                 --  TFIDFTagSuggest
-TrainTPR                   --  TPRTagSuggest
-TrainWAM                   --  SMTTagSuggest.java
-TrainWAMsample.java        --  SMTTagSuggest.java
-TrainWAMWithtitleInstead   --  SMTTagSuggest.java 
-TrainWTM.java              --  SMTTagSuggest.java
+| Training Class | Suggesting Class |
+|---|:---|
+| TrainExpandRank | ExpandRankKE |
+| TrainKnn | KnnTagSuggest |
+| TrainNaiveBayes | NaiveBayesTagSuggest |
+| TrainNoiseTagLdaModel | NoiseTagLadaTagSuggest |
+| TrainPMI | PMITagsuggest |
+| TrainTagLdaModel | TagLdaTagSuggest |
+| TrainTAM | TAMTagSuggest |
+| TrainTFIDF | TFIDFTagSuggest |
+| TrainTPR | TPRTagSuggest |
+| TrainWAM | SMTTagSuggest |
+| TrainWAMsample | SMTTagSuggest |
+| TrainWAMWithtitleInstead | SMTTagSuggest | 
+| TrainWTM | SMTTagSuggest |
+
 
 ========================================================================
+

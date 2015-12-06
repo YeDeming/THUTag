@@ -33,11 +33,11 @@ ant : Start a terminal in the directory "TagSuggestion/", input command "ant" an
 
 Part III: How To Run Cross-validation of THUTagSuggest
 
-Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Testing Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
+Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
 Parameters : --dataset="Input file path"
 	      --trainer_class="Name of Training Class"
-	      --suggester_class="Name of Testing Class"
+	      --suggester_class="Name of Suggesting Class"
 	      --num_folds="Num the file divided into"
 	      --config="Parameter1=Value1;Parameter2=Value2;..."(The parameters can be dataType, k, numtopics, niter, etc.. Parameters vary with models and no parameter means using default values)
 	      --working_dir="Working directory"
