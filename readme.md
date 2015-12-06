@@ -28,6 +28,7 @@ Part II: How To Compile TagSuggest
 Environment : java(support java 1.8.0)
 
 ant : Start a terminal in the directory "TagSuggestion/", input command "ant" and then TagSuggest will be compiled; or you can choose the build.xml for "ant build" in eclipse.
+
 ========================================================================
 
 Part III: How To Run Cross-validation of THUTagSuggest
