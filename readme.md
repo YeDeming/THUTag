@@ -1,5 +1,4 @@
 Table of Content
-
 ==============
 
 Part I   : TagSuggest Contents
@@ -12,8 +11,8 @@ Part VII : Input File Formats of UI && Testing a single passage
 Part VIII: Output File Formats of UI && Testing a single passage
 Part IX  : Literature
 Part X   : Appendix
-Part I: TagSuggest Contents
 
+Part I: TagSuggest Contents
 ==============
 
 Algorithms for Keyphrase Extraction and Social Tag Suggestion, including Cross-Validation Evaluator
