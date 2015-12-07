@@ -1,4 +1,6 @@
-CONTENTS of this README file:
+Table of Content
+
+==============
 
 Part I   : TagSuggest Contents
 Part II  : How To Compile TagSuggest
@@ -10,28 +12,26 @@ Part VII : Input File Formats of UI && Testing a single passage
 Part VIII: Output File Formats of UI && Testing a single passage
 Part IX  : Literature
 Part X   : Appendix
-
-========================================================================
-
 Part I: TagSuggest Contents
 
-Algorithm for Keyphrase Extraction(including Cross Evaluator)
+==============
 
-build :¡¡Working directory
+Algorithms for Keyphrase Extraction and Social Tag Suggestion, including Cross-Validation Evaluator
+
+build :ã€€Working directory
 
 GIZA++  mkcls  plain2snt.out : Essential to running WTM/WAM/WAM*
 
-========================================================================
-
 Part II: How To Compile TagSuggest
+==============
 
-Environment : java(support java 1.8.0)
+Environment : java (support java 1.8.0)
 
 ant : Start a terminal in the directory "TagSuggestion/", input command "ant" and then TagSuggest will be compiled; or you can choose the build.xml for "ant build" in eclipse.
 
-========================================================================
 
 Part III: How To Run Cross-validation of THUTagSuggest
+==============
 
 Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
@@ -46,11 +46,12 @@ Parameters : --dataset="Input file path"
 The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
 If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.
+
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
 
-In Doubanpost (Md=2)
+The evaluation results on Douban Post Dataset (M_d=2)
 
-| algorithm | p | r | F1 |
+| Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
 | WTM | 0.36828 | 0.45131 | 0.35410 |
 | PMI | 0.31453	| 0.30884 | 0.26602 |
@@ -64,9 +65,9 @@ In Doubanpost (Md=2)
 | TFIDF | 0.12962 | 0.14525 | 0.11725 |
 | WAMsample | 0.10288 | 0.10819 | 0.08945 |
 
-In Keywordpost (Md=2)
+The evaluation results on Keyword Post Dataset (M_d=2)
 
-| algorithm | p | r | F1 |
+| Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
 | TFIDF | 0.21508 | 0.24943 | 0.22591 |
 | ExpandRankKE | 0.20291 | 0.23672 | 0.21368 |
@@ -80,29 +81,27 @@ In Keywordpost (Md=2)
 | TagLdaModel | 0.04871 | 0.05879 | 0.05194 |
 
 
-========================================================================
-
 Part IV: Input File Formats of Cross-validation
+==============
 
-dataType=Post : {"id":"ÎÄÕÂ±àºÅ","content":"ÎÄÕÂÄÚÈİ","extras":"","resourceKey":"","timestamp":0,"title":"ÎÄÕÂ±êÌâ","userId":"","tags":["±êÇ©1","±êÇ©2","±êÇ©3",...]}   (Focus on news)
+dataType=Post : {"id":"æ–‡ç« ç¼–å·","content":"æ–‡ç« å†…å®¹","extras":"","resourceKey":"","timestamp":0,"title":"æ–‡ç« æ ‡é¢˜","userId":"","tags":["æ ‡ç­¾1","æ ‡ç­¾2","æ ‡ç­¾3",...]}   (Focus on news)
 
-Example : {"id":"1004838","content":"¸ñ·Ç¨D¨D1964ÄêÉúÓÚ½­ËÕÊ¡µ¤µÂÏØ£¬±ÏÒµÓÚ»ª¶«Ê¦·¶´óÑ§ÖĞÎÄÏµ£¬»ñÎÄÑ§²©Ê¿Ñ§Î»¡£1985ÄêÖÁ2000ÄêÈÎ½ÌÓÚ»ª¶«Ê¦·¶´óÑ§£¬ÏÖÎªÇå»ª´óÑ§ÖĞÎÄÏµ½ÌÊÚ¡£Ö÷Òª×÷Æ·ÓĞ¡¶¸ñ·ÇÎÄ¼¯¡·¡¢¡¶ÓûÍûµÄÆìÖÄ¡·µÈ¡£","extras":"","resourceKey":"","timestamp":0,"title":"µĞÈË","userId":"","tags":["Ğ¡Ëµ","»Äµ®","µĞÈË","ÖĞ¹úÎÄÑ§","¸ñ·Ç"]}   (Demo file is post.dat/keypost.dat)
+Example : {"id":"1004838","content":"æ ¼éâ€•â€•1964å¹´ç”Ÿäºæ±Ÿè‹çœä¸¹å¾·å¿ï¼Œæ¯•ä¸šäºåä¸œå¸ˆèŒƒå¤§å­¦ä¸­æ–‡ç³»ï¼Œè·æ–‡å­¦åšå£«å­¦ä½ã€‚1985å¹´è‡³2000å¹´ä»»æ•™äºåä¸œå¸ˆèŒƒå¤§å­¦ï¼Œç°ä¸ºæ¸…åå¤§å­¦ä¸­æ–‡ç³»æ•™æˆã€‚ä¸»è¦ä½œå“æœ‰ã€Šæ ¼éæ–‡é›†ã€‹ã€ã€Šæ¬²æœ›çš„æ——å¸œã€‹ç­‰ã€‚","extras":"","resourceKey":"","timestamp":0,"title":"æ•Œäºº","userId":"","tags":["å°è¯´","è’è¯","æ•Œäºº","ä¸­å›½æ–‡å­¦","æ ¼é"]}   (Demo file is post.dat/keypost.dat)
 
-dataType=DoubanPost : {"doubanTags":{"±êÇ©1":È¨ÖØ1(ÔÚ´Ë¿ÉÓÃ¶¹°êµãÔŞÊı±íÊ¾È¨ÖØ),"±êÇ©2":È¨ÖØ2,"±êÇ©3":È¨ÖØ3,...},"id":"ÎÄÕÂ±àºÅ","content":"ÎÄÕÂÄÚÈİ","tags":[±êÇ©],"timestamp":0,"resourceKey":"","title":"ÎÄÕÂ±êÌâ","userId":"","extras":""}   (Focus on books)
+dataType=DoubanPost : {"doubanTags":{"æ ‡ç­¾1":æƒé‡1(åœ¨æ­¤å¯ç”¨è±†ç“£ç‚¹èµæ•°è¡¨ç¤ºæƒé‡),"æ ‡ç­¾2":æƒé‡2,"æ ‡ç­¾3":æƒé‡3,...},"id":"æ–‡ç« ç¼–å·","content":"æ–‡ç« å†…å®¹","tags":[æ ‡ç­¾],"timestamp":0,"resourceKey":"","title":"æ–‡ç« æ ‡é¢˜","userId":"","extras":""}   (Focus on books)
 
-Example : {"doubanTags":{"ÎÄ»¯":5,"Ï×¸ø·ÇÕÜÑ§¼ÒµÄĞ¡ÕÜÑ§":6,"ÕÜÑ§":29,"·¨¹ú":17},"id":"1000047","content":"È«Çò»¯ÊÇ±ØÈ»Ç÷ÊÆ£¿ÈÊÕß¼ûÈÊ£¬ÖÇÕß¼ûÖÇ¡£ÓĞÈË¾ªºô£º¡°ÀÇÀ´ÁË£¡¡±ÓĞÈËµ£ÓÇ£º¡°ÔõÃ´°ì£¿¡±»¹ÓĞÈËÔÚË¼¿¼£º¡°¶ÔÊÀ½çÀ´Ëµ£¬¾­¼Ã¿ÉÒÔÈ«Çò»¯£¬ÉõÖÁ»õ±ÒÒ²¿ÉÒÔÒ»Ìå»¯£¬µ«ÎÄ»¯ÔòÒª¹ÄÀø¶àÔª»¯¡£¡±ÊÇµÄ£¬Ö»ÓĞ±¾×ÅÎÄ»¯¶àÔª»¯µÄ¾«Éñ£¬ÔÚ×ğÖØÆäËûÃñ×åÎÄ»¯µÄÍ¬Ê±£¬×ÔÉí²ÅÄÜ»ñµÃ²»¶ÏµÄ·¢Õ¹Óë·á¸»¡£·¨¹úÈË×ö³öÁË×Ô¼ºµÄÌ½Ë÷ÓëÅ¬Á¦¡£½ñÌì£¬ÄúÃæÇ°µÄÕâÒ»Ì×¡°·¨À¼Î÷Êé¿â¡¤î£ÕÜÏµÁĞ¡±ÎªÄú´ò¿ªÁËÒ»ÉÈ¹µÍ¨µÄ´°¿Ú¡£ËûÉ½Ö®Ê¯£¬¿ÉÒÔ¹¥Óñ¡£ÎÒÃÇÏ£ÍûÕâÑùµÄ¶Ô»°¿ÉÒÔ×ßµÃÔ½À´Ô½Ô¶¡£","tags":[],"timestamp":0,"resourceKey":"","title":"Ï×¸ø·ÇÕÜÑ§¼ÒµÄĞ¡ÕÜÑ§  î£ÕÜÏµÁĞ","userId":"","extras":""}   (Demo file is bookPost70000.dat)
+Example : {"doubanTags":{"æ–‡åŒ–":5,"çŒ®ç»™éå“²å­¦å®¶çš„å°å“²å­¦":6,"å“²å­¦":29,"æ³•å›½":17},"id":"1000047","content":"å…¨çƒåŒ–æ˜¯å¿…ç„¶è¶‹åŠ¿ï¼Ÿä»è€…è§ä»ï¼Œæ™ºè€…è§æ™ºã€‚æœ‰äººæƒŠå‘¼ï¼šâ€œç‹¼æ¥äº†ï¼â€æœ‰äººæ‹…å¿§ï¼šâ€œæ€ä¹ˆåŠï¼Ÿâ€è¿˜æœ‰äººåœ¨æ€è€ƒï¼šâ€œå¯¹ä¸–ç•Œæ¥è¯´ï¼Œç»æµå¯ä»¥å…¨çƒåŒ–ï¼Œç”šè‡³è´§å¸ä¹Ÿå¯ä»¥ä¸€ä½“åŒ–ï¼Œä½†æ–‡åŒ–åˆ™è¦é¼“åŠ±å¤šå…ƒåŒ–ã€‚â€æ˜¯çš„ï¼Œåªæœ‰æœ¬ç€æ–‡åŒ–å¤šå…ƒåŒ–çš„ç²¾ç¥ï¼Œåœ¨å°Šé‡å…¶ä»–æ°‘æ—æ–‡åŒ–çš„åŒæ—¶ï¼Œè‡ªèº«æ‰èƒ½è·å¾—ä¸æ–­çš„å‘å±•ä¸ä¸°å¯Œã€‚æ³•å›½äººåšå‡ºäº†è‡ªå·±çš„æ¢ç´¢ä¸åŠªåŠ›ã€‚ä»Šå¤©ï¼Œæ‚¨é¢å‰çš„è¿™ä¸€å¥—â€œæ³•å…°è¥¿ä¹¦åº“Â·ç¿å“²ç³»åˆ—â€ä¸ºæ‚¨æ‰“å¼€äº†ä¸€æ‰‡æ²Ÿé€šçš„çª—å£ã€‚ä»–å±±ä¹‹çŸ³ï¼Œå¯ä»¥æ”»ç‰ã€‚æˆ‘ä»¬å¸Œæœ›è¿™æ ·çš„å¯¹è¯å¯ä»¥èµ°å¾—è¶Šæ¥è¶Šè¿œã€‚","tags":[],"timestamp":0,"resourceKey":"","title":"çŒ®ç»™éå“²å­¦å®¶çš„å°å“²å­¦  ç¿å“²ç³»åˆ—","userId":"","extras":""}   (Demo file is bookPost70000.dat)
 
-========================================================================
 
 Part V: Output File Formats of Cross-validation
+==============
 
 The output is a text file,whose first seven columns are the major data.From the first column to the seventh column are these in order: the number of keywords that we ask the algorithm to output | precision rate(Pre.) | the variance of precision rate | recall rate(Rec.) | the variance of recall rate | Fmeans | the variance of Fmeans
 
 we have that 1 / Fmeans = 1 / Pre. +1 / Rec.
 
-========================================================================
-
-Part VI: How To Run UI && Testing a single passage of THUTagSuggest
+Part VI: How To Run UI & Test a Single Passage with THUTagSuggest
+==============
 
 Command for training model : java -Xmx8G -jar tagsuggest.jar train.TrainWTM --input=/home/meepo/test/sampleui/bookPost70000.dat --output=/home/meepo/test/sample --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" 
 
@@ -124,33 +123,30 @@ Test a single passage : java -Xmx8G -jar tagsuggest.jar evaluation.TestDemo --mo
 "algorith" is the train class that we choose.
 "config" is the config of thetraiclass.
  
+ 
 The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
  
 If you want to run WTM/WAM/WAM*, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command. 
 
-========================================================================
 
-Part VII: Input File Formats of UI && Testing a single passage
+Part VII: Input File Formats of UI & Testing a Single Passage
+==============
 
 In the UI interface,you can input text directly.
 And when test a individual text file,the text file must contains two lines:the first line is the title of the article and the second line is the content of the article.
 
-========================================================================
-
-Part VIII: Output File Formats of UI && Testing a single passage
+Part VIII: Output File Formats of UI & Testing a Single Passage
+==============
 
 In the UI interface,our program will show the keywords to the screen directly.
 And when test a individual text file,the program will give back a text file with ten keywords that the algorithm forecast and their corresponding weights.
 
-========================================================================
-
 Part IX: Literature
+==============
 
-
-
-========================================================================
 
 Part X: Appendix
+==============
 
 Correspondence between Training Class and Suggesting Class
 
@@ -169,11 +165,3 @@ Correspondence between Training Class and Suggesting Class
 | TrainWAMsample | SMTTagSuggest |
 | TrainWAMWithtitleInstead | SMTTagSuggest | 
 | TrainWTM | SMTTagSuggest |
-
-
-========================================================================
-
-
-
-
-
