@@ -46,6 +46,8 @@ public class WordFeatureExtractor implements FeatureExtractor {
 	Set<String> stopwords = null;
 	int lang = -1;
 	private static Pattern bracesRE = Pattern.compile("[{}]+");
+	private static String Chinese_stopword_path = new String();
+	
 
 	private HashSet<String> tagPossibleSet = new HashSet<String>();
 	private static RtuMain jar_path = new RtuMain();
@@ -254,11 +256,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		
 		try {
 			String stopWordsFile = jar_path.getProjectPath() + File.separator + "chinese_stop_word.txt"; 
-			/*LOG.info("fail");
-			String stopWordsFile = WordFeatureExtractor.class.getClassLoader()
-		      .getResourceAsStream("org/thunlp/tagsuggest/common/chinese_stop_word.txt").toString();
-			*/LOG.info(stopWordsFile);
-		
+			
 			BufferedReader stop = new BufferedReader(
 					new InputStreamReader(
 							new FileInputStream(
@@ -281,7 +279,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 				}
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			//	e1.printStackTrace();
 			}
 		}
 	}
@@ -290,6 +288,28 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		
 		this();
 		this.config = config;
+		
+		try {
+			String stopWordsFile = config
+					.getProperty("model",
+							 jar_path.getProjectPath()) + File.separator +"chinese_stop_word.txt";
+	
+			LOG.info(stopWordsFile);
+		
+			BufferedReader stop = new BufferedReader(
+					new InputStreamReader(
+							new FileInputStream(
+									stopWordsFile),
+							"UTF-8"));
+			String line;
+			while ((line = stop.readLine()) != null) {
+				stopwords.add(line);
+			}
+			stop.close();
+		} catch (IOException e) {
+			 e.printStackTrace();
+		}
+		
 		try {
 			if (config.getProperty("dataType", "Post").equals("DoubanPost")) {
 				System
@@ -297,7 +317,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 								"wordsegment.automata.file",
 								config
 										.getProperty("model",
-												 jar_path.getProjectPath() + File.separator + "book.model"));
+												 jar_path.getProjectPath()) + File.separator + "book.model");
 							//						WordFeatureExtractor.class.getClassLoader()
 								//			      .getResourceAsStream("org/thunlp/tagsuggest/common/book.model").toString()));
 									//	}

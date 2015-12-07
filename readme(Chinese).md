@@ -43,7 +43,7 @@ ant编译 : 在TagSuggestion/目录下打开终端,输入命令 ant ,即可完�
 	      --working_dir="工作目录"
 	      --report="运行结果存放路径"
 
-默认book.model和chinese_stop_word.txt路径和tagsuggest.jar文件位于同一目录下.如果需要更改book.model路径信息,需要在运行命令的config中添加model="book.model路径",其中book.model用于最大前向分词，chinese_stop_word.txt记录中文中的停用词
+默认book.model和chinese_stop_word.txt路径和tagsuggest.jar文件位于同一目录下.如果需要更改book.model路径信息,需要在运行命令的config中添加model="他们共同的路径",其中book.model用于最大前向分词，chinese_stop_word.txt记录中文中的停用词。 e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
 如果需要运行SMT算法,需要额外的三个文件GIZA++  mkcls  plain2snt.out,默认路径为这三个文件和tagsuggest.jar文件位于同一目录下.如果需要更改路径信息,需要在运行命令参数中添加  --giza_path="这三个文件的路径"
 
@@ -112,7 +112,7 @@ model_path为模型地址,algorithm为选择测试类,config为测试类参数
 
 model_path为模型地址,algorithm为选择测试类,config为测试类参数,article_path为需测试文件(第一行为标题,第二行为内容),output_path为关键词文件输出路径
 
-默认book.model和chinese_stop_word.txt路径和tagsuggest.jar文件位于同一目录下.如果需要更改book.model路径信息,需要在运行命令的config中添加model="book.model路径"
+默认book.model和chinese_stop_word.txt路径和tagsuggest.jar文件位于同一目录下.如果需要更改book.model路径信息,需要在运行命令的config中添加model="他们共同的路径",其中book.model用于最大前向分词，chinese_stop_word.txt记录中文中的停用词。 e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
 如果需要运行WTM/WAM/WAM*算法,需要额外的三个文件GIZA++  mkcls  plain2snt.out,默认路径为这三个文件和tagsuggest.jar文件位于同一目录下.如果需要更改路径信息,需要在运行命令参数中添加  --giza_path="这三个文件的路径"
 

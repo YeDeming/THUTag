@@ -43,7 +43,7 @@ Parameters : --dataset="Input file path"
 	      --working_dir="Working directory"
 	      --report="Path of report"
 
-The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of book.model" to --config."book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese.
+The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
 If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
@@ -124,8 +124,7 @@ Test a single passage : java -Xmx8G -jar tagsuggest.jar evaluation.TestDemo --mo
 "algorith" is the train class that we choose.
 "config" is the config of thetraiclass.
  
- 
-The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of book.model" to --config.
+The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
  
 If you want to run WTM/WAM/WAM*, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command. 
 
