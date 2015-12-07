@@ -1,6 +1,5 @@
 CONTENTS of this README file:
 
-
 Part I   : TagSuggest Contents
 Part II  : How To Compile TagSuggest
 Part III : How To Run Cross-validation of THUTagSuggest
@@ -11,7 +10,6 @@ Part VII : Input File Formats of UI && Testing a single passage
 Part VIII: Output File Formats of UI && Testing a single passage
 Part IX  : Literature
 Part X   : Appendix
-
 
 ========================================================================
 
