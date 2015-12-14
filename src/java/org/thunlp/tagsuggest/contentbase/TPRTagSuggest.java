@@ -53,22 +53,6 @@ public class TPRTagSuggest implements TagSuggest, GenerativeTagSuggest {
 	private static double[] PRresult = null;
 	private static double[] rankResult = null;
 	private static int num = 0;
-
-	public static void main(String[] args) throws IOException {
-		TPRTagSuggest lda = new TPRTagSuggest();
-		lda.setConfig(ConfigIO.configFromString("numtags=10;norm=all_log;k=5;dataType=0;isSample=false"));
-		lda.loadModel("/home/niuyl/java/work/TagSuggestion/working_dir");
-		
-		RecordReader reader = new RecordReader("/home/niuyl/java/work/TagSuggestion/post/post.dat");
-	    StringBuilder explain = new StringBuilder("");
-	    int rightnum = 0, allnum = 0;
-	    while (reader.next()) {
-	    	++allnum;
-	      Post p = J.fromJson(reader.value(), Post.class);
-	      lda.suggest(p, explain);
-
-	    }
-	}
 	
 	@Override
 	public void feedback(Post p) {
@@ -183,6 +167,12 @@ public class TPRTagSuggest implements TagSuggest, GenerativeTagSuggest {
 		List<WeightString> results = new ArrayList<WeightString>();
 		if (num == 0)
 			return results;
+
+		for (int i = 0; i < num; ++ i)
+		{
+			results.add(new WeightString(textWordMap.get(i),  rankResult[i]));
+		}
+	/*
 		///////
 		 for (String t : model.tags()) { model.ptz(t, ptz); results.add(new
 		 WeightString(t, computeLikelihood(ptz, pzd))); }
@@ -190,7 +180,7 @@ public class TPRTagSuggest implements TagSuggest, GenerativeTagSuggest {
 		 for (String w : model.getAllWords()) { model.pwz(w, pwz);
 		 results.add(new WeightString(w, computeLikelihood(pwz, pzd))); }
 	 	///////
-	
+	*/
 		 Collections.sort(results, new Comparator<WeightString>() {
 			@Override
 			public int compare(WeightString o1, WeightString o2) {

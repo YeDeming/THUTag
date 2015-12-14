@@ -55,7 +55,7 @@ public class TrainTPR implements GenericTool, ModelTrainer {
     extractor.setWordLexicon(wordlex);
     tagFilter = new TagFilter(config, taglex);
     List<Document> dataset = loadDocs(input, config.getProperty("fold", "-1"));
-    int numTopics = Integer.parseInt(config.getProperty("numtopics", "64"));
+    int numTopics = Integer.parseInt(config.getProperty("numtopics", "500"));
     int numIterations = Integer.parseInt(config.getProperty("niter", "40"));
     NoiseTagLdaModel model = new NoiseTagLdaModel(numTopics);
     model.train(dataset, numIterations);

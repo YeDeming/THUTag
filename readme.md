@@ -10,7 +10,8 @@ Part VI  : How To Run UI && Testing a single passage of THUTagSuggest
 Part VII : Input File Formats of UI && Testing a single passage
 Part VIII: Output File Formats of UI && Testing a single passage
 Part IX  : Literature
-Part X   : Appendix
+Part X   : Authors
+Part XI  : Appendix
 
 Part I: TagSuggest Contents
 ==============
@@ -52,32 +53,27 @@ The evaluation results on Douban Post Dataset (M_d=2)
 
 | Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
+| PMI | 0.38962	| 0.45730 | 0.36692 |
 | WTM | 0.36828 | 0.45131 | 0.35410 |
-| PMI | 0.31453	| 0.30884 | 0.26602 |
-| KNN |	0.27914 | 0.26815 | 0.23365 |
-| NaiveBayes |	0.23707 | 0.21926 | 0.19369 |
-| TPR | 0.21436 |0.18183 | 0.16829 |
-| NoiseTagLdaModel | 0.21206 | 0.17785 | 0.16538 |
-| ExpandRankKE | 0.15213 | 0.16313 | 0.13441 |
-| WAM | 0.15112 | 0.15756 | 0.13172 |
-| TagLdaModel | 0.16191 | 0.13882 | 0.12801 |
+| KNN |	0.35862 | 0.40057 | 0.32871 |
+| TAM | 0.31710 | 0.35261 | 0.29026 |
+| NaiveBayes |	0.25466 | 0.28118 | 0.23079 |
+| NoiseTagLdaModel | 0.22596 | 0.22855 | 0.19665 |
+| TagLdaModel | 0.17459 | 0.18503 | 0.15623 |
 | TFIDF | 0.12962 | 0.14525 | 0.11725 |
-| WAMsample | 0.10288 | 0.10819 | 0.08945 |
+
 
 The evaluation results on Keyword Post Dataset (M_d=2)
 
 | Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
+| WAM | 0.21003| 0.43579 | 0.27333 |
+| WAMwithtitleInstead | 0.20723 | 0.43185 | 0.27014 |
+| WAMsample | 0.20068 | 0.41699 | 0.26129 |
+| ExpandRankKE | 0.18351 | 0.37994 | 0.23860 |
+| TPR | 0.17831 | 0.36921 | 0.23187 |
 | TFIDF | 0.21508 | 0.24943 | 0.22591 |
-| ExpandRankKE | 0.20291 | 0.23672 | 0.21368 |
-| NaiveBayes | 0.19729 | 0.24835 | 0.21267 |
-| WAMsample | 0.19841 | 0.22931 | 0.20836 |
-| WAMwithtitleInstead | 0.19721 | 0.22687 | 0.20676 |
-| KNN | 0.19014 | 0.23957 | 0.20463 |
-| TAM | 0.10893 | 0.1293 | 0.1153 |
-| NoiseTagLdaModel | 0.07388 | 0.09015 | 0.07902 |
-| TPR | 0.07315 | 0.08589 | 0.07732 |
-| TagLdaModel | 0.04871 | 0.05879 | 0.05194 |
+| Textpagerank | 0.19833 | 0.22971 | 0.20837 |
 
 
 Part IV: Input File Formats of Cross-validation
@@ -97,7 +93,7 @@ Part V: Output File Formats of Cross-validation
 
 The output is a text file,whose first seven columns are the major data.From the first column to the seventh column are these in order: the number of keywords that we ask the algorithm to output | precision rate(Pre.) | the variance of precision rate | recall rate(Rec.) | the variance of recall rate | Fmeans | the variance of Fmeans
 
-we have that 1 / Fmeans = 1 / Pre. +1 / Rec.
+we have that 2 / Fmeans = 1 / Pre. +1 / Rec.
 
 Part VI: How To Run UI & Test a Single Passage with THUTagSuggest
 ==============
@@ -144,7 +140,11 @@ Part IX: Literature
 ==============
 
 
-Part X: Appendix
+Part IX: Authors
+==============
+Zhiyuan Liu,Xinxiong Chen,Deming Ye
+
+Part XI: Appendix
 ==============
 
 Correspondence between Training Class and Suggesting Class
@@ -164,3 +164,4 @@ Correspondence between Training Class and Suggesting Class
 | TrainWAMsample | SMTTagSuggest |
 | TrainWAMWithtitleInstead | SMTTagSuggest | 
 | TrainWTM | SMTTagSuggest |
+| TrainTextpagerank | TextpagerankTagSuggest |
