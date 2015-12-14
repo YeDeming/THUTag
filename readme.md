@@ -6,14 +6,23 @@ Part I   : TagSuggest Contents
 Part II  : How To Compile TagSuggest
 
 Part III : How To Run Cross-validation of THUTagSuggest
+
 Part IV  : Input File Formats of Cross-validation
+
 Part V   : Output File Formats of Cross-validation
+
 Part VI  : How To Run UI && Testing a single passage of THUTagSuggest
+
 Part VII : Input File Formats of UI && Testing a single passage
+
 Part VIII: Output File Formats of UI && Testing a single passage
+
 Part IX  : Literature
+
 Part X   : Authors
 Part XI  : Appendix
+
+
 
 Part I: TagSuggest Contents
 ==============
