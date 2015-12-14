@@ -20,8 +20,8 @@ Part VIII: Output File Formats of UI && Testing a single passage
 Part IX  : Literature
 
 Part X   : Authors
-Part XI  : Appendix
 
+Part XI  : Appendix
 
 
 Part I: TagSuggest Contents
