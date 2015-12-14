@@ -2,7 +2,9 @@ Table of Content
 ==============
 
 Part I   : TagSuggest Contents
+
 Part II  : How To Compile TagSuggest
+
 Part III : How To Run Cross-validation of THUTagSuggest
 Part IV  : Input File Formats of Cross-validation
 Part V   : Output File Formats of Cross-validation
