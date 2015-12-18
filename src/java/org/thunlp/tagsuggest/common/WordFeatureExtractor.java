@@ -62,7 +62,6 @@ public class WordFeatureExtractor implements FeatureExtractor {
 	
 	public static void buildLexicons(String input, Lexicon wordlex,
 			Lexicon taglex, Properties config) throws IOException {
-
 		// We use lexicon cache to avoid repeatly lexicon building.
 		File cachedTagLexFile = new File(input + ".taglex");
 		File cachedWordLexFile = new File(input + ".wordlex");
@@ -311,19 +310,19 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		}
 		
 		try {
-			if (config.getProperty("dataType", "Post").equals("DoubanPost")) {
+		//	if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
+			if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
 				System
 						.setProperty(
 								"wordsegment.automata.file",
 								config
 										.getProperty("model",
 												 jar_path.getProjectPath()) + File.separator + "book.model");
-							//						WordFeatureExtractor.class.getClassLoader()
-								//			      .getResourceAsStream("org/thunlp/tagsuggest/common/book.model").toString()));
-									//	}
+
 			}
 			ws = new ForwardMaxWordSegment();
-			if (config.getProperty("dataType", "Post").equals("DoubanPost")) {
+			if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
+	//		if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
 				System.clearProperty("wordsegment.automata.file");
 			}
 		} catch (IOException e) {
@@ -385,10 +384,12 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		content = LangUtils.removeLineEnds(content);
 		content = LangUtils.removeExtraSpaces(content);
 		content = content.toLowerCase();
+
 		String[] words = ws.segment(content);
 
 		List<String> filtered = new LinkedList<String>();
 		for (String word : words) {
+
 			if (word.length() < 1)
 				continue;
 			if (useSingleChineseChar) {

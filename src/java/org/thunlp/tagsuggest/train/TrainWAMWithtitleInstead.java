@@ -29,6 +29,7 @@ import org.thunlp.language.chinese.WordSegment;
 import org.thunlp.misc.Counter;
 import org.thunlp.misc.Flags;
 import org.thunlp.tagsuggest.common.ConfigIO;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.Post;
 import org.thunlp.tagsuggest.common.RtuMain;
 import org.thunlp.tagsuggest.common.ModelTrainer;
@@ -109,11 +110,11 @@ public class TrainWAMWithtitleInstead implements GenericTool, ModelTrainer {
 				localTaglex.loadFromFile(tagLexFile);
 			} else {
 				while (reader.next()) {
-					Post p = J.fromJson(reader.value(), Post.class);
+					KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 					if (fold.length() > 0 && p.getExtras().equals(fold)) {
 						continue;
 					}
-					String[] features = fe.extract(p);
+					String[] features = fe.extractKeyword(p,true,true,true);
 					if (features.length <= 0) {
 						continue;
 					}
@@ -147,13 +148,12 @@ public class TrainWAMWithtitleInstead implements GenericTool, ModelTrainer {
 			// the second time :
 			while (reader.next()) {
 				counter++;
-				Post p = J.fromJson(reader.value(), Post.class);
+				KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 				if (fold.length() > 0 && p.getExtras().equals(fold)) {
 					continue;
 				}				
 				
-				//String content = p.getSummary() + p.getContent();
-				String content = p.getContent();
+				String content = p.getSummary() + p.getContent();
 				content = content.replaceAll("\n", "");
 				String [] sentences = content.split("。|！");
 				

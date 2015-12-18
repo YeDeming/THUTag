@@ -14,6 +14,7 @@ import org.thunlp.misc.WeightString;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.FeatureExtractor;
 import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.TagSuggest;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
 import org.thunlp.tagsuggest.train.TrainTFIDF;
@@ -24,7 +25,7 @@ public class TFIDFTagSuggest implements TagSuggest {
 private static Logger LOG = Logger.getAnonymousLogger();
 
   Lexicon lex = null;
-  private FeatureExtractor extractor = new WordFeatureExtractor();
+  private WordFeatureExtractor extractor = new WordFeatureExtractor();
   private Properties config = null;
   private int numTags = 10;
   
@@ -55,7 +56,9 @@ private static Logger LOG = Logger.getAnonymousLogger();
 
   @Override
   public List<WeightString> suggest(Post p, StringBuilder explain) {
-    String [] features = extractor.extract(p);
+	  
+    String [] features = extractor.extractKeyword((KeywordPost) p, true, true,true);
+    
     Counter<String> featureSet = new Counter<String>();
 
     for (String feature : features) {

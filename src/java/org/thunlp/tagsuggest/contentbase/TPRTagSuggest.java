@@ -25,10 +25,11 @@ import org.thunlp.matrix.pagerank.PageRank;
 import org.thunlp.misc.WeightString;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.GenerativeTagSuggest;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.Post;
 import org.thunlp.tagsuggest.common.TagSuggest;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
-import org.thunlp.tagsuggest.contentbase.NoiseTagLdaModel.Document;
+import org.thunlp.tagsuggest.contentbase.TagLdaModel.WordDocument;
 
 import java.lang.Thread;
 
@@ -63,8 +64,7 @@ public class TPRTagSuggest implements TagSuggest, GenerativeTagSuggest {
 		FileInputStream input = new FileInputStream(modelPath);
 		model = new NoiseTagLdaModel(input);
 		input.close();
-		LOG.info("Load LDA model of " + model.getNumTopics() + " topics and "
-				+ model.tags().size() + " tags.");
+		LOG.info("Load LDA model of " + model.getNumTopics() + " topics");
 		pzd = new double[model.getNumTopics()];
 		pwz = new double[model.getNumTopics()];
 		ptz = new double[model.getNumTopics() + 1];
@@ -99,8 +99,8 @@ public class TPRTagSuggest implements TagSuggest, GenerativeTagSuggest {
 	@Override
 	public List<WeightString> suggest(Post p, StringBuilder explain) {
 
-		String[] features = extractor.extract(p);
-		Document d = new Document(features, EMPTY_TAG_SET);
+		String[] features = extractor.extractKeyword((KeywordPost) p, true, true, true);
+		WordDocument d = new WordDocument(features, EMPTY_TAG_SET);
 		model.inference(d, pzd);		
 
 		// for TextRank

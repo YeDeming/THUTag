@@ -95,8 +95,8 @@ public class TrainExpandRank implements GenericTool, ModelTrainer {
     
     RecordReader reader = new RecordReader(input);
     while (reader.next()) {
-      Post p = J.fromJson(reader.value(), Post.class);
-    	//KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
+      //Post p = J.fromJson(reader.value(), Post.class);
+    	KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
       if (blacklist.contains(p.getUserId())) {
         continue;
       }
@@ -119,11 +119,10 @@ public class TrainExpandRank implements GenericTool, ModelTrainer {
     docsIndex.close();
   }
   
-  public Document makeContentDoc(Post p) {
+  public Document makeContentDoc(KeywordPost p) {
     //String [] words = extractor.extract(p);
-//	  String[] words = extractor.extractKeyword(p, true, true, true);
-	  String[] words = extractor.extract(p);
-	  String docString = StringUtil.join(words, " ");
+	  String[] words = extractor.extractKeyword(p, true, true, true);
+    String docString = StringUtil.join(words, " ");
     Document d = new Document();
     d.add(new Field("doc_id", p.getId(),
         Field.Store.YES, Field.Index.UN_TOKENIZED));

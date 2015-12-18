@@ -30,6 +30,7 @@ import org.thunlp.misc.Counter;
 import org.thunlp.misc.Flags;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.Post;
 import org.thunlp.tagsuggest.common.ModelTrainer;
 import org.thunlp.tagsuggest.common.RtuMain;
@@ -97,6 +98,7 @@ public class TrainWAM implements GenericTool, ModelTrainer {
 			HashSet<String> tagSet = new HashSet<String>();
 
 			RecordReader reader = new RecordReader(input);
+
 			// the first time : create wordlex and taglex to store the tf and df
 			// information
 			Lexicon localWordlex = new Lexicon();
@@ -109,13 +111,11 @@ public class TrainWAM implements GenericTool, ModelTrainer {
 				localTaglex.loadFromFile(tagLexFile);
 			} else {
 				while (reader.next()) {
-
-					Post p = J.fromJson(reader.value(), Post.class);
-
+					KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 					if (fold.length() > 0 && p.getExtras().equals(fold)) {
 						continue;
 					}
-					String[] features = extrator.extract(p);
+					String[] features = extrator.extractKeyword(p,true,true,true);
 					if (features.length <= 0) {
 						continue;
 					}
@@ -136,7 +136,7 @@ public class TrainWAM implements GenericTool, ModelTrainer {
 				reader.close();
 				reader = new RecordReader(input);
 			}
-			
+
 			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
 					new FileOutputStream(modelDir.getAbsolutePath() + "/book"),
 					"UTF-8"));
@@ -149,105 +149,139 @@ public class TrainWAM implements GenericTool, ModelTrainer {
 			// the second time :
 			while (reader.next()) {
 
-				Post p = J.fromJson(reader.value(), Post.class);
-				
+				KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 				if (fold.length() > 0 && p.getExtras().equals(fold)) {
 					continue;
+				}
+				String title = p.getTitle();
+				String[] titleWords = ws.segment(title);
+				
+				for(int i = 0; i < titleWords.length; i ++){
+					if(localWordlex.getWord(titleWords[i]) != null){
+						if(i == 0){
+							out.write(titleWords[i]);
+							outTag.write(titleWords[i]);
+						}else{
+							out.write(" "+titleWords[i]);
+							outTag.write(" "+titleWords[i]);
+						}
+					}
+				}
+				out.newLine();
+				out.flush();
+				outTag.newLine();
+				outTag.flush();
+				
+				Vector<Double> wordTfidf = new Vector<Double>();
+				Vector<String> wordList = new Vector<String>();
+				double normalize = 0.0;
+				Counter<String> termFreq = new Counter<String>();
+				for (String word : titleWords) {
+					termFreq.inc(word, 1);
+				}
+				Iterator<Entry<String, Long>> iter = termFreq.iterator();
+				while (iter.hasNext()) {
+					Entry<String, Long> e = iter.next();
+					String word = e.getKey();
+					if(localWordlex.getWord(word) == null){
+						continue;
+					}
+					wordList.add(word);
+					
+					double tf = ((double) e.getValue())
+							/ ((double) titleWords.length);
+					double idf = Math.log(((double) localWordlex.getNumDocs())
+							/ ((double) localWordlex.getWord(word)
+									.getDocumentFrequency()));
+					double tfidf = tf * idf;
+					wordTfidf.add(tfidf);
+					normalize += tfidf * tfidf;
+				}
+				Vector<Double> wordProb = new Vector<Double>();
+				for (int i = 0; i < wordTfidf.size(); i++) {
+					wordProb.add(wordTfidf.elementAt(i) / normalize);
 				}				
 				
-				String content = p.getContent();
+				String content = p.getSummary() + p.getContent();
 				content = content.replaceAll("\n", "");
 				String [] sentences = content.split("。|！");
-				
-				if(sentences.length < 1){
-					continue;
-				}
-				
-				// use all possible pairs to train
-				Vector<HashMap<String, Double>> wordTfidfs = new Vector<HashMap<String,Double>>();
-				Vector<String[]> wordsVec = new Vector<String[]>();
-				double normalize = 0.0;
-				for (int j = 0 ; j < sentences.length; j ++){
-					String[] titleWords = ws.segment(sentences[j]);
-					
-					HashMap<String, Integer> wordTf = new HashMap<String, Integer>();
-					HashMap<String, Double> wordTfidf = new HashMap<String, Double>();
-					
-					for (String word : titleWords) {
-						if(wordTf.containsKey(word)){
-							wordTf.put(word, wordTf.get(word) + 1);
+				HashMap<String, Integer> contentTf = new HashMap<String, Integer>();
+				HashMap<String, Double> contentTfidf = new HashMap<String, Double>();
+				for(int i = 0; i < sentences.length; i ++){
+					contentTf.clear();
+					contentTfidf.clear();
+					if(sentences.length <= 2){
+						continue;
+					}
+					double score = 0.0;
+					String sentence = sentences[i];
+					String[] words = ws.segment(sentence);
+					for (String word : words) {
+						if(contentTf.containsKey(word)){
+							int tmp = contentTf.get(word) + 1;
+							contentTf.put(word, tmp + 1);
 						}
 						else{
-							wordTf.put(word, 1);
+							contentTf.put(word, 1);
 						}
 					}
 					normalize = 0.0;
-					for(Entry<String, Integer> e : wordTf.entrySet()){
+					for(Entry<String, Integer> e : contentTf.entrySet()){
 						String word = e.getKey();
 						if(localWordlex.getWord(word) == null){
 							continue;
 						}
-						double tf = ((double) e.getValue()) / ((double) titleWords.length);
+						double tf = ((double) e.getValue()) / ((double) words.length);
 						double idf = Math.log(((double) localWordlex.getNumDocs())
 								/ ((double) localWordlex.getWord(word)
 										.getDocumentFrequency()));
 						double tfidf = tf * idf;
-						wordTfidf.put(word, tfidf);
+						contentTfidf.put(word, tfidf);
 						normalize += tfidf * tfidf;
 					}
-					for(Entry<String, Double> e : wordTfidf.entrySet()){
+					for(Entry<String, Double> e : contentTfidf.entrySet()){
 						e.setValue(e.getValue() / normalize);
 					}
-					wordTfidfs.add(wordTfidf);
-					wordsVec.add(titleWords);
-				}
-				
-				for(int i = 0; i < sentences.length; i ++){
-					for(int j = i + 1; j < sentences.length; j ++){
-						double score = 0.0;
-						
-						for(Entry<String, Double> e : wordTfidfs.get(i).entrySet()){
-							String word = e.getKey();
-							if(wordTfidfs.get(j).containsKey(word)){
-								score += e.getValue() * wordTfidfs.get(j).get(word);
-							}
-						}
-						if(score >= scoreLimit){
-							String [] first = wordsVec.get(i);
-							String [] second = wordsVec.get(j);
-							for(int k = 0; k < first.length; k ++){
-								if(localWordlex.getWord(first[k]) != null){
-									if(k == 0 ){
-										out.write(first[k]);
-									}
-									else{
-										out.write(" "+first[k]);
-									}
-								}
-							}
-							out.newLine();
-							out.flush();
-							
-							for(int k = 0; k < second.length; k ++){
-								if(localWordlex.getWord(second[k]) != null){
-									if(k == 0){
-										outTag.write(second[k]);
-									}else{
-										outTag.write(" "+second[k]);
-									}
-								}
-							}
-							outTag.newLine();
-							outTag.flush();
+					for(int j = 0; j < wordList.size(); j ++){
+						String word = wordList.get(j);
+						if(contentTfidf.containsKey(word)){
+							score += contentTfidf.get(word) * wordProb.get(j);
 						}
 					}
+					if(score >= scoreLimit){
+						for(int j = 0; j < words.length; j ++){
+							if(localWordlex.getWord(words[j]) != null){
+								if(j == 0 ){
+									out.write(words[j]);
+								}
+								else{
+									out.write(" "+words[j]);
+								}
+							}
+						}
+						out.newLine();
+						out.flush();
+						
+						for(int j = 0; j < titleWords.length; j ++){
+							if(localWordlex.getWord(titleWords[j]) != null){
+								if(j == 0){
+									outTag.write(titleWords[j]);
+								}else{
+									outTag.write(" "+titleWords[j]);
+								}
+							}
+						}
+						outTag.newLine();
+						outTag.flush();
+					}
 				}
+				
 			}
 			
 			reader.close();
 			out.close();
 			outTag.close();
-
+			
 			LOG.info("source and target are prepared!");
 
 			// training

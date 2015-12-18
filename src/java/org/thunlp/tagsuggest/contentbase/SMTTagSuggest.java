@@ -31,6 +31,7 @@ import org.thunlp.misc.WeightString;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.DoubanPost;
 import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.TagSuggest;
 import org.thunlp.tagsuggest.common.Filter;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
@@ -114,7 +115,8 @@ public class SMTTagSuggest implements TagSuggest {
 
 			word2Tag = files.get(files_len-2);
 			tag2Word = files.get(files_len-1);
-
+			LOG.info(word2Tag);
+			LOG.info(tag2Word);
 			BufferedReader pro = new BufferedReader(new InputStreamReader(
 					new FileInputStream(modelPath + File.separator +  word2Tag),
 					"UTF-8"));
@@ -169,7 +171,8 @@ public class SMTTagSuggest implements TagSuggest {
 			
 			word2Tag = files2.get(files2_len-2);
 			tag2Word = files2.get(files2_len-1);
-
+			LOG.info(word2Tag);
+			LOG.info(tag2Word);
 			BufferedReader inverse = new BufferedReader(
 					new InputStreamReader(new FileInputStream(modelPath + File.separator + tag2Word),"UTF-8"));
 			String line;
@@ -225,6 +228,7 @@ public class SMTTagSuggest implements TagSuggest {
 			if (idMap.containsKey(word))
 				termFreq.inc(word, 1);
 		}
+
 		Iterator<Entry<String, Long>> iter = termFreq.iterator();
 		HashMap<Integer, Double> proMap = new HashMap<Integer, Double>();
 		while (iter.hasNext()) {
@@ -254,7 +258,7 @@ public class SMTTagSuggest implements TagSuggest {
 					int tagId = ee.getKey();
 					if(inverseTable.containsKey(id) && inverseTable.get(id).containsKey(tagId)){
 //						double pro = ee.getValue() * inverseTable.get(id).get(tagId);
-						double pro = 1.0 / ( para / ee.getValue() + (1.0 - para) / inverseTable.get(id).get(tagId));
+					double pro = 1.0 / ( para / ee.getValue() + (1.0 - para) / inverseTable.get(id).get(tagId));
 
 						if (proMap.containsKey(tagId)) {
 							double tmp = proMap.get(tagId);
@@ -289,15 +293,15 @@ public class SMTTagSuggest implements TagSuggest {
 
 	public static void main(String[] args) throws IOException {
 		SMTTagSuggest smt = new SMTTagSuggest();
-		smt.setConfig(ConfigIO.configFromString("num_tags=10;norm=all_log;isSample=true;model=/home/meepo/test/sample/book.model;size=70000;fromDouban=true;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2"));
-		smt.loadModel("/home/meepo/test/sample");
-		RecordReader reader = new RecordReader("/home/meepo/test/sample/bookPost70000.dat");
+		smt.setConfig(ConfigIO.configFromString("stop_wordnum_tags=10;norm=all_log;model=/home/meepo/test/sample;size=70000;dataType=KeywordPost;minwordfreq=10;mintagfreq=10"));
+		smt.loadModel("/home/meepo/test/sample/model.3.gz");
+		RecordReader reader = new RecordReader("/home/meepo/test/check.post");
 		BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream("/home/meepo/test/sample/suggest/ans.txt"), "UTF-8"));
+				new FileOutputStream("/home/meepo/test/ansmy.txt"), "UTF-8"));
 		JsonUtil J = new JsonUtil();
 		List<WeightString> tags;
 		while (reader.next()) {
-			DoubanPost p = J.fromJson(reader.value(), DoubanPost.class);
+			KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 			tags = smt.suggest(p, null);
 			int counter = 0;
 			for (WeightString s : tags) {
@@ -308,11 +312,7 @@ public class SMTTagSuggest implements TagSuggest {
 			}
 			outTag.newLine();
 			outTag.flush();
-	
-			if (reader.numRead() % 1000 == 0)
-			{
-					break;
-			}
+			break;
 		}
 		reader.close();
 		outTag.close();

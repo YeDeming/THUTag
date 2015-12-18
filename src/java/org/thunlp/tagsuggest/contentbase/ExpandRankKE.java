@@ -108,7 +108,7 @@ public class ExpandRankKE implements TagSuggest {
 		// relevant documents as the suggestion.
 
 		// String content = p.getTitle() + " " + p.getContent();
-		String content = p.getTitle() + " " //+ ((KeywordPost) p).getSummary()
+		String content = p.getTitle() + " " + ((KeywordPost) p).getSummary()
 				+ " " + p.getContent();
 		content = extractor.clean(content);
 		List<WeightString> keywords = extractKeywords(content);

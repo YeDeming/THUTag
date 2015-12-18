@@ -18,10 +18,11 @@ import org.thunlp.misc.Flags;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.ModelTrainer;
 import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.TagFilter;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
-import org.thunlp.tagsuggest.contentbase.NoiseTagLdaModel;
-import org.thunlp.tagsuggest.contentbase.NoiseTagLdaModel.Document;
+import org.thunlp.tagsuggest.contentbase.LdaModel;
+import org.thunlp.tagsuggest.contentbase.LdaModel.WordDocument;
 import org.thunlp.text.Lexicon;
 import org.thunlp.tool.GenericTool;
 
@@ -54,10 +55,10 @@ public class TrainTPR implements GenericTool, ModelTrainer {
     extractor = new WordFeatureExtractor(config);
     extractor.setWordLexicon(wordlex);
     tagFilter = new TagFilter(config, taglex);
-    List<Document> dataset = loadDocs(input, config.getProperty("fold", "-1"));
+    List<WordDocument> dataset = loadDocs(input, config.getProperty("fold", "-1"));
     int numTopics = Integer.parseInt(config.getProperty("numtopics", "500"));
     int numIterations = Integer.parseInt(config.getProperty("niter", "40"));
-    NoiseTagLdaModel model = new NoiseTagLdaModel(numTopics);
+    LdaModel model = new LdaModel(numTopics);
     model.train(dataset, numIterations);
     BufferedOutputStream out = new BufferedOutputStream(
         new FileOutputStream(new File(output))
@@ -66,22 +67,21 @@ public class TrainTPR implements GenericTool, ModelTrainer {
     out.close();
   }
   
-  public  List<Document> loadDocs(String input, String fold) throws IOException {
-    List<Document> docs = new ArrayList<Document>();
+  public  List<WordDocument> loadDocs(String input, String fold) throws IOException {
+    List<WordDocument> docs = new ArrayList<WordDocument>();
     Set<String> filtered = new HashSet<String>();
     // Load all docs.
     RecordReader reader = new RecordReader(input);
     List<String> tokens = new ArrayList<String>();
     while (reader.next()) {
-      Post p = J.fromJson(reader.value(), Post.class);
+    KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
       tokens.clear();
       if (!p.getExtras().equals(fold)) {
-        String [] words = extractor.extract(p);
+		String[] words = extractor.extractKeyword((KeywordPost) p, true, true, true);
         tokens.addAll(Arrays.asList(words));
         tagFilter.filter(p.getTags(), filtered);
         if (tokens.size() > 0) {
-          docs.add(new Document(tokens.toArray(new String[tokens.size()]),
-              filtered.toArray(new String[filtered.size()])));
+          docs.add(new WordDocument(tokens.toArray(new String[tokens.size()])));
         }
       }
       if (docs.size() % 1000 == 0) {

@@ -9,12 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -28,14 +25,13 @@ import org.thunlp.io.RecordReader;
 import org.thunlp.language.chinese.LangUtils;
 import org.thunlp.misc.Counter;
 import org.thunlp.misc.Flags;
-import org.thunlp.misc.WeightString;
-import org.thunlp.tagsuggest.common.RtuMain;
 import org.thunlp.tagsuggest.common.ConfigIO;
-import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.DoubanPost;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.ModelTrainer;
+import org.thunlp.tagsuggest.common.RtuMain;
 import org.thunlp.tagsuggest.common.TagFilter;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
-import org.thunlp.tagsuggest.train.TrainWAM.StreamGobbler;
 import org.thunlp.text.Lexicon;
 import org.thunlp.tool.GenericTool;
 
@@ -43,21 +39,19 @@ public class TrainWAMsample implements GenericTool, ModelTrainer {
 	private static Logger LOG = Logger.getAnonymousLogger();
 	private Properties config = null;
 	private String fold = "";
+	JsonUtil J = new JsonUtil();
+	WordFeatureExtractor fe = null;
+	TagFilter tagFilter = null;
 	private String giza_path;
 	private RtuMain jar_path = new RtuMain();
-	
-	JsonUtil J = new JsonUtil();
-	WordFeatureExtractor extractor = null;
-	
+
 	@Override
 	public void run(String[] args) throws Exception {
-		LOG.info("All start");
 		// TODO Auto-generated method stub
 		Flags flags = new Flags();
 		flags.add("input");
 		flags.add("output");
 		flags.add("config");
-		flags.parseAndCheck(args);
 
 		Properties config = ConfigIO
 				.configFromString(flags.getString("config"));
@@ -68,19 +62,16 @@ public class TrainWAMsample implements GenericTool, ModelTrainer {
 	public void train(String inputPath, String modelPath, Properties config)
 			throws IOException {
 		// TODO Auto-generated method stub
-		
 		this.config = config;
 		this.fold = config.getProperty("fold", "");
 		
 		giza_path = config.getProperty("giza_path", jar_path.getProjectPath());
 		LOG.info("giza_path:" + giza_path);
-		
-		
 		buildProTable(inputPath, new File(modelPath));
 	}
 
 	public void buildProTable(String input, File modelDir) {
-
+		int counter = 0;
 		try {
 			if (!modelDir.exists()) {
 				modelDir.mkdir();
@@ -88,133 +79,182 @@ public class TrainWAMsample implements GenericTool, ModelTrainer {
 
 			Lexicon wordlex = new Lexicon();
 			Lexicon taglex = new Lexicon();
-			LOG.info("Start building");
-
 			WordFeatureExtractor.buildLexicons(input, wordlex, taglex, config);
+			fe = new WordFeatureExtractor(config);
+			fe.setWordLexicon(wordlex);
+			fe.setTagLexicon(taglex);
+			tagFilter = new TagFilter(config, taglex);
+			Set<String> filtered = new HashSet<String>();
+			HashSet<String> tagSet = new HashSet<String>();
 
-			extractor = new WordFeatureExtractor(config);
-			extractor.setWordLexicon(wordlex);
-			extractor.setTagLexicon(taglex);
-			
 			RecordReader reader = new RecordReader(input);
 
+			// the first time : create wordlex and taglex to store the tf and df
 			// information
 			Lexicon localWordlex = new Lexicon();
-			
+			Lexicon localTaglex = new Lexicon();
 			File wordLexFile = new File(modelDir.getAbsolutePath() + "/wordlex");
-
-			if (wordLexFile.exists()) {
+			File tagLexFile = new File(modelDir.getAbsolutePath() + "/taglex");
+			if (wordLexFile.exists() && tagLexFile.exists()) {
 				LOG.info("Use cached lexicons");
 				localWordlex.loadFromFile(wordLexFile);
+				localTaglex.loadFromFile(tagLexFile);
 			} else {
 				while (reader.next()) {
-					Post p = J.fromJson(reader.value(), Post.class);
+					KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 					if (fold.length() > 0 && p.getExtras().equals(fold)) {
 						continue;
 					}
-					String[] features = extractor.extract(p);
+					String[] features = fe.extractKeyword(p,true,true,true);
 					if (features.length <= 0) {
 						continue;
 					}
-
+					tagFilter.filterWithNorm(p.getTags(), filtered);
+					if (filtered == null) {
+						continue;
+					}
 					localWordlex.addDocument(features);
+					localTaglex.addDocument(filtered
+							.toArray(new String[filtered.size()]));
 
 					if (reader.numRead() % 1000 == 0)
-					{
 						LOG.info(modelDir.getAbsolutePath()
 								+ " building lexicons: " + reader.numRead());
-					}
 				}
 				localWordlex.saveToFile(wordLexFile);
+				localTaglex.saveToFile(tagLexFile);
 				reader.close();
 				reader = new RecordReader(input);
 			}
 
-			BufferedWriter outTitle = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(modelDir.getAbsolutePath() 
-							+ "/book"), "UTF-8"));
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(modelDir.getAbsolutePath() + "/book"),
+					"UTF-8"));
 
-			BufferedWriter outContentbag = new BufferedWriter(new OutputStreamWriter(
+			BufferedWriter outTag = new BufferedWriter(new OutputStreamWriter(
 					new FileOutputStream(modelDir.getAbsolutePath()
 							+ "/bookTag"), "UTF-8"));
 
+			TagFilter localTagFilter = new TagFilter(config, localTaglex);
+			Set<String> localFiltered = new HashSet<String>();
+
+			Random random = new Random();
+			Pattern spaceRE = Pattern.compile(" +");
 			// the second time :
 			while (reader.next()) {
-				Post p = J.fromJson(reader.value(), Post.class);
+				counter++;
+				KeywordPost p = J.fromJson(reader.value(), KeywordPost.class);
 				if (fold.length() > 0 && p.getExtras().equals(fold)) {
 					continue;
 				}
 				
-				String title = p.getTitle();
-				String content = p.getContent();
-				
-				title = extractor.clean(title);
-			    String[] titlewords = extractor.getWords(title);
-			    
-			    String[] words = extractor.extract(p);
-			    
-				if (titlewords.length <= 0 || words.length <= 0) {
+				String[] words = fe.extractKeyword(p, true, true, true);
+				if (words.length <= 0) {
 					continue;
 				}
+				
+				String[] tags = fe.extractKeyword(p, true, false, false);
+				if (tags.length <= 0) {
+					continue;
+				}
+				
+				int wordnum = (words.length > 100) ? 100 : words.length;
 
 				// sample the words
-			    List<WeightString> wordList = new ArrayList<WeightString>();
+				Vector<Double> wordTfidf = new Vector<Double>();
+				Vector<String> wordList = new Vector<String>();
 				Counter<String> termFreq = new Counter<String>();
-				
 				for (String word : words) {
 					termFreq.inc(word, 1);
 				}
 				Iterator<Entry<String, Long>> iter = termFreq.iterator();
-
+				double totalTfidf = 0.0;
 				while (iter.hasNext()) {
 					Entry<String, Long> e = iter.next();
 					String word = e.getKey();
-
+					wordList.add(word);
 					double tf = ((double) e.getValue())
 							/ ((double) words.length);
 					double idf = Math.log(((double) localWordlex.getNumDocs())
 							/ ((double) localWordlex.getWord(word)
 									.getDocumentFrequency()));
-					
-					wordList.add(new WeightString(e.getKey(), tf * idf));
+					wordTfidf.add(tf * idf);
+					totalTfidf += tf * idf;
+				}
+				Vector<Double> wordProb = new Vector<Double>();
+				for (int i = 0; i < wordTfidf.size(); i++) {
+					wordProb.add(wordTfidf.elementAt(i) / totalTfidf);
+				}
+
+				for (int i = 0; i < wordnum; i++) {
+					double select = random.nextDouble();
+					double sum = 0.0;
+					int j = 0;
+					for (j = 0; j < wordProb.size(); j++) {
+						sum += wordProb.elementAt(j);
+						if (sum >= select)
+							break;
+					}
+					String word = wordList.elementAt(j);
+					if (i == 0) {
+						out.write(word);
+					} else {
+						out.write(" " + word);
+					}
 				}
 				
-			    Collections.sort(wordList, WeightString.REVERSE_COMPARATOR);
+				// sample the tags
+				Vector<Double> tagTfidf = new Vector<Double>();
+				Vector<String> tagList = new Vector<String>();
+				Counter<String> tagTermFreq = new Counter<String>();
+				for (String tag : tags) {
+					tagTermFreq.inc(tag, 1);
+				}
+				iter = tagTermFreq.iterator();
+				totalTfidf = 0.0;
+				while (iter.hasNext()) {
+					Entry<String, Long> e = iter.next();
+					String tag = e.getKey();
+					tagList.add(tag);
+					double tf = ((double) e.getValue())
+							/ ((double) tags.length);
+					double idf = Math.log(((double) localWordlex.getNumDocs())
+							/ ((double) localWordlex.getWord(tag)
+									.getDocumentFrequency()));
+					tagTfidf.add(tf * idf);
+					totalTfidf += tf * idf;
+				}
+				Vector<Double> tagProb = new Vector<Double>();
+				for (int i = 0; i < tagTfidf.size(); i++) {
+					tagProb.add(tagTfidf.elementAt(i) / totalTfidf);
+				}
 
-				int wordnum = (titlewords.length > 100) ? 100 : titlewords.length;
-				if (wordList.size() < wordnum)  wordnum = wordList.size();
-
-				//print the title
 				for (int i = 0; i < wordnum; i++) {
-					String word = titlewords[i];
+					double select = random.nextDouble();
+					double sum = 0.0;
+					int j = 0;
+					for (j = 0; j < tagProb.size(); j++) {
+						sum += tagProb.elementAt(j);
+						if (sum >= select)
+							break;
+					}
+					String tag = tagList.elementAt(j);
 					if (i == 0) {
-						outTitle.write(word);
+						outTag.write(tag);
 					} else {
-						outTitle.write(" " + word);
+						outTag.write(" " + tag);
 					}
 				}
-				outTitle.newLine();
-				outTitle.flush();
-
-				// print the content bag
-
-				for (int i = 0; i < wordnum; i++) {
-					String word = wordList.get(i).text;
-
-					if (i == 0) {
-						outContentbag.write(word);
-					} else {
-						outContentbag.write(" " + word);
-					}
-				}
-				outContentbag.newLine();
-				outContentbag.flush();
-
+				
+				out.newLine();
+				out.flush();
+				outTag.newLine();
+				outTag.flush();
 			}
-			
+
 			reader.close();
-			outTitle.close();
-			outContentbag.close();
+			out.close();
+			outTag.close();
 
 			LOG.info("source and target are prepared!");
 
@@ -268,13 +308,11 @@ public class TrainWAMsample implements GenericTool, ModelTrainer {
 		} catch (Exception e) {
 			LOG.info("Error exec!");
 		}
-}
+	}
 
 	public static void main(String[] args) throws IOException {
-		TrainWAMsample Test = new TrainWAMsample();
-		Test.config = ConfigIO.configFromString("num_tags=10;norm=all_log;isSample=true;model=/home/meepo/test/sample/book.model;size=70000;fromDouban=true;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2");
-		Test.buildProTable("/home/meepo/test/sample/bookPost70000.dat", new
-		 File("/home/meepo/test/sample"));
+		// new TrainSMT().buildProTable("/home/cxx/smt/sample/train.dat", new
+		// File("/home/cxx/smt/sample"));
 
 	}
 

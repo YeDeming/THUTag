@@ -60,7 +60,7 @@ If you want to run SMT, you need another three files GIZA++, mkcls, and plain2sn
 
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
 
-The evaluation results on Douban Post Dataset (M_d=2)
+The evaluation results on Douban Post Dataset (M_d=3)
 
 | Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
@@ -78,12 +78,12 @@ The evaluation results on Keyword Post Dataset (M_d=2)
 
 | Algorithm | Precision | Recall | F1 |
 |---|:---|:---|:---|
-| WAM | 0.21003| 0.43579 | 0.27333 |
-| WAMwithtitleInstead | 0.20723 | 0.43185 | 0.27014 |
-| WAMsample | 0.20068 | 0.41699 | 0.26129 |
-| ExpandRankKE | 0.18351 | 0.37994 | 0.23860 |
-| TPR | 0.17831 | 0.36921 | 0.23187 |
-| TFIDF | 0.21508 | 0.24943 | 0.22591 |
+| WAM | 0.30735 | 0.43726 | 0.34747 |
+| WAMsample | 0.29424 | 0.41814 | 0.33254 |
+| WAMwithtitleInstead | 0.26571 | 0.37286 | 0.29849 |
+| ExpandRankKE | 0.22818 | 0.31578 | 0.25461 |
+| TPR | 0.21913 | 0.3060 | 0.24551 |
+| TFIDF | 0.25459 | 0.20083 | 0.21876 |
 | Textpagerank | 0.19833 | 0.22971 | 0.20837 |
 
 

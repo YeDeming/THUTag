@@ -25,6 +25,7 @@ import org.thunlp.matrix.pagerank.PageRank;
 import org.thunlp.misc.WeightString;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.GenerativeTagSuggest;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.Post;
 import org.thunlp.tagsuggest.common.TagSuggest;
 import org.thunlp.tagsuggest.common.WordFeatureExtractor;
@@ -32,12 +33,6 @@ import org.thunlp.tagsuggest.contentbase.NoiseTagLdaModel.Document;
 
 import java.lang.Thread;
 
-/**
- * This class use the Tag-LDA method proposed by Xiance Si.
- * 
- * @author sixiance
- * 
- */
 public class TextpagerankTagSuggest implements TagSuggest {
 	private static Logger LOG = Logger.getAnonymousLogger();
 	private Properties config = null;
@@ -94,7 +89,7 @@ public class TextpagerankTagSuggest implements TagSuggest {
 	@Override
 	public List<WeightString> suggest(Post p, StringBuilder explain) {
 
-		String[] features = extractor.extract(p);
+		String[] features = extractor.extractKeyword((KeywordPost) p, true, true,true);
 		Document d = new Document(features, EMPTY_TAG_SET);
 
 		// for TextRank
