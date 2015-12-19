@@ -62,6 +62,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 	
 	public static void buildLexicons(String input, Lexicon wordlex,
 			Lexicon taglex, Properties config) throws IOException {
+
 		// We use lexicon cache to avoid repeatly lexicon building.
 		File cachedTagLexFile = new File(input + ".taglex");
 		File cachedWordLexFile = new File(input + ".wordlex");
@@ -310,8 +311,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		}
 		
 		try {
-		//	if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
-			if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
+			if (!config.getProperty("dataType", "Post").equals("Keyword")) {
 				System
 						.setProperty(
 								"wordsegment.automata.file",
@@ -321,8 +321,7 @@ public class WordFeatureExtractor implements FeatureExtractor {
 
 			}
 			ws = new ForwardMaxWordSegment();
-			if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
-	//		if (!config.getProperty("dataType", "Post").equals("KeywordPost")) {
+			if (!config.getProperty("dataType", "Post").equals("Keyword")) {
 				System.clearProperty("wordsegment.automata.file");
 			}
 		} catch (IOException e) {
@@ -384,12 +383,10 @@ public class WordFeatureExtractor implements FeatureExtractor {
 		content = LangUtils.removeLineEnds(content);
 		content = LangUtils.removeExtraSpaces(content);
 		content = content.toLowerCase();
-
 		String[] words = ws.segment(content);
 
 		List<String> filtered = new LinkedList<String>();
 		for (String word : words) {
-
 			if (word.length() < 1)
 				continue;
 			if (useSingleChineseChar) {
