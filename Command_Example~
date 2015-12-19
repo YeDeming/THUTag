@@ -1,4 +1,4 @@
-java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/bookPost70000.dat --trainer_class=TrainWTM --suggester_class=SMTTagSuggest --num_folds=5 --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" --working_dir=/data/disk1/private/ydm/tryWTM/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_WTMreal.txt
+java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/bookPost70000.dat --trainer_class=TrainWTM --suggester_class=SMTTagSuggest --num_folds=5 --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" --working_dir=/data/disk1/private/ydm/tryWTM/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_WTMreal.txt
 
 java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/KeywordPost.dat --trainer_class=TrainWAMSample --suggester_class=SMTKeywordTagSuggest --num_folds=5 --config="num_tags=10;norm=all_log;size=13702;dataType=KeywordPost;minwordfreq=10;mintagfreq=10" --working_dir=/data/disk1/private/ydm/working_dir7/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_WAMsamplereal.txt
 
@@ -27,7 +27,6 @@ java -Xmx8G -jar tagsuggest.jar org.thunlp.tagsuggest.evaluation.CrossValidator 
 
 
 java -Xmx8G -jar tagsuggest.jar org.thunlp.tagsuggest.evaluation.CrossValidator --dataset=/home/meepo/test/sample/KeywordPost.dat --trainer_class=TrainTextpagerank --suggester_class=TextpagerankTagSuggest --num_folds=5 --config="dataType=KeywordPost;" --working_dir=/home/meepo/test/sample/ --at_n=10 --report=/home/meepo/evaluation_Textpagerank.txt
-
 
 
 java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/KeywordPost.dat --trainer_class=TrainTopicPageRank --suggester_class=TopicPageRankTagSuggest --num_folds=5 --config="dataType=KeywordPost;numtopics=50;mintagfreq=10" --working_dir=/data/disk1/private/ydm/working_dir3/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_TPR502.txt

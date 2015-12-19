@@ -29,6 +29,5 @@ java -Xmx8G -jar tagsuggest.jar org.thunlp.tagsuggest.evaluation.CrossValidator 
 java -Xmx8G -jar tagsuggest.jar org.thunlp.tagsuggest.evaluation.CrossValidator --dataset=/home/meepo/test/sample/KeywordPost.dat --trainer_class=TrainTextpagerank --suggester_class=TextpagerankTagSuggest --num_folds=5 --config="dataType=KeywordPost;" --working_dir=/home/meepo/test/sample/ --at_n=10 --report=/home/meepo/evaluation_Textpagerank.txt
 
 
-
 java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/KeywordPost.dat --trainer_class=TrainTopicPageRank --suggester_class=TopicPageRankTagSuggest --num_folds=5 --config="dataType=KeywordPost;numtopics=50;mintagfreq=10" --working_dir=/data/disk1/private/ydm/working_dir3/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_TPR502.txt
 
