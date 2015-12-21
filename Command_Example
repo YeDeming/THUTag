@@ -9,10 +9,10 @@ java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/
 
 java -Xmx4G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/KeywordPost.dat --trainer_class=TrainTFIDF --suggester_class=TFIDFTagSuggest --num_folds=5 --config="dataType=KeywordPost" --working_dir=/data/disk1/private/ydm/working_dir3/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_TFIDF.txt
 
-java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/post.dat --trainer_class=TrainKnn --suggester_class=KnnTagSuggest --num_folds=5 --config="dataType=Post;k=75;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2;" --working_dir=/data/disk1/private/ydm/working_dir4/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_Knn.txt
+java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/post.dat --trainer_class=TrainKnn --suggester_class=KnnTagSuggest --num_folds=5 --config="dataType=Post;k=75;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" --working_dir=/data/disk1/private/ydm/working_dir4/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_Knn.txt
 
 
-java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/post.dat --trainer_class=TrainTagLdaModel --suggester_class=TagLdaTagSuggest --num_folds=5 --config="dataType=Post;numtopics=32;niter=40;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2;" --working_dir=/data/disk1/private/ydm/working_dir4/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_TagLdaModel.txt
+java -Xmx4G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/post.dat --trainer_class=TrainTagLdaModel --suggester_class=TagLdaTagSuggest --num_folds=5 --config="dataType=Post;numtopics=32;niter=40;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2;" --working_dir=/data/disk1/private/ydm/working_dir4/ --at_n=10 --report=/data/disk1/private/ydm/reportkeyword/evaluation_TagLdaModel.txt
 
 java -Xmx8G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/post.dat --trainer_class=TrainTAM --suggester_class=TAMTagSuggest --num_folds=5 --config="dataType=Post;niteN=40;numBurnIn=30;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2;" --working_dir=/data/disk1/private/ydm/working_dir9/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_TAMreal.txt 
 

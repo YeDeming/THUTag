@@ -5,13 +5,13 @@ Part I   : TagSuggest Contents
 
 Part II  : How To Compile TagSuggest
 
-Part III : How To Run Cross-validation of THUTagSuggest
+Part III : How To Run Cross-validation of THUTag
 
 Part IV  : Input File Formats of Cross-validation
 
 Part V   : Output File Formats of Cross-validation
 
-Part VI  : How To Run UI && Testing a single passage of THUTagSuggest
+Part VI  : How To Run UI && Testing a single passage of THUTag
 
 Part VII : Input File Formats of UI && Testing a single passage
 
@@ -41,7 +41,7 @@ Environment : java (support java 1.8.0)
 ant : Start a terminal in the directory "TagSuggestion/", input command "ant" and then TagSuggest will be compiled; or you can choose the build.xml for "ant build" in eclipse.
 
 
-Part III: How To Run Cross-validation of THUTagSuggest
+Part III: How To Run Cross-validation of THUTag
 ==============
 
 Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
@@ -54,7 +54,7 @@ Parameters : --dataset="Input file path"
 	      --working_dir="Working directory"
 	      --report="Path of report"
 
-The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
+The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation for data that focus on books and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
 If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.
 
@@ -66,13 +66,11 @@ The evaluation results on Douban Post Dataset (M_d=3)
 |---|:---|:---|:---|
 | PMI | 0.38962	| 0.45730 | 0.36692 |
 | WTM | 0.36828 | 0.45131 | 0.35410 |
-| KNN |	0.35862 | 0.40057 | 0.32871 |
-| TAM | 0.31710 | 0.35261 | 0.29026 |
-| NaiveBayes |	0.25466 | 0.28118 | 0.23079 |
-| NoiseTagLdaModel | 0.22596 | 0.22855 | 0.19665 |
-| TagLdaModel | 0.17459 | 0.18503 | 0.15623 |
-| TFIDF | 0.12962 | 0.14525 | 0.11725 |
-
+| KNN |	0.33910 | 0.37885 | 0.31103 |
+| TAM | 0.30758 | 0.34045 | 0.28093 |
+| NaiveBayes |	0.27064 | 0.30223 | 0.24671 |
+| NoiseTagLdaModel | 0.20956 | 0.20757 | 0.18054 |
+| TagLdaModel | 0.15756 | 0.16646 | 0.14054 |
 
 The evaluation results on Keyword Post Dataset (M_d=2)
 
@@ -110,7 +108,7 @@ The output is a text file,whose first seven columns are the major data.From the 
 
 we have that 2 / Fmeans = 1 / Pre. +1 / Rec.
 
-Part VI: How To Run UI & Test a Single Passage with THUTagSuggest
+Part VI: How To Run UI & Test a Single Passage with THUTag
 ==============
 
 Command for training model : java -Xmx8G -jar tagsuggest.jar train.TrainWTM --input=/home/meepo/test/sampleui/bookPost70000.dat --output=/home/meepo/test/sample --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" 
@@ -134,7 +132,7 @@ Test a single passage : java -Xmx8G -jar tagsuggest.jar evaluation.TestDemo --mo
 "config" is the config of thetraiclass.
  
  
-The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
+The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation for data that focus on books and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
  
 If you want to run WTM/WAM/WAM*, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command. 
 
