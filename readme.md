@@ -157,7 +157,7 @@ Part IX: Literature
 
 Part IX: Authors
 ==============
-Zhiyuan Liu,Xinxiong Chen,Deming Ye
+Xinxiong Chen, Deming Ye, Xiance Si, Zhiyuan Liu
 
 Part XI: Appendix
 ==============
