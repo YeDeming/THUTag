@@ -32,7 +32,7 @@ Part XII : Appendix
 Part I: THUTag Contents
 ==============
 
-The package contains mutiple algorithms for Keyphrase Extraction and Social Tag Suggestion, including Cross-Validation Evaluator.
+The package contains mutiple algorithms for Keyphrase Extraction and Social Tag Suggestion including a Cross-Validation Evaluator.
 
 build :　Working directory
 
@@ -190,6 +190,8 @@ Part XI: Authors
 Contributors: Xinxiong Chen, Deming Ye, Xiance Si, Zhiyuan Liu.
 
 Supervisor: Prof. Maosong Sun. 
+
+For any questions about this package, you can contact us at thunlp@gmail.com .
 
 Part XII: Appendix
 ==============
