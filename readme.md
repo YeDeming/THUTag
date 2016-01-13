@@ -49,7 +49,7 @@ ant : Start a terminal in the directory "THUTag/", input command "ant" and then 
 Part III: How To Run Cross-validation of THUTag
 ==============
 
-There are some examples in file "Command_Example".And there is a demo in folder "demo".
+There are some examples in file "Command_Example".And there is a demo in "/demo".
 
 Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
