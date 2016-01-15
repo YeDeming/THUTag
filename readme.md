@@ -68,7 +68,7 @@ java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/
 
 The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation for data that focus on books and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
-If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.And if you want to work in Windows,you must compile the GIZA++, mkcls, and plain2snt.out again.They are in /giza-pp and compile by make.Then you should fix some code in TrainWTM/TrainWAM*,replacing "GIZA++" with "GIZA++.exe","mkcls" with "mkcls.exe","plain2snt.out" with "plain2snt.out.exe".
+If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.And if you want to work on Windows,you must compile the GIZA++, mkcls, and plain2snt.out again.They are in /giza-pp and compile by make(it will be a little difficult).Then you should fix some code in TrainWTM/TrainWAM*,replacing "GIZA++" with "GIZA++.exe","mkcls" with "mkcls.exe","plain2snt.out" with "plain2snt.out.exe".
 
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
 
