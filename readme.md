@@ -49,7 +49,7 @@ ant : Start a terminal in the directory "THUTag/", input command "ant" and then 
 Part III: How To Run Cross-validation of THUTag
 ==============
 
-There are a lot of examples in file "Command_Example".And there is a demo in "/demo".
+There are a lot of examples in file "Command_Example".And there is a demo in "/demo".You'd use commandline to run the algorithm beacuse it need to set the working RAM.
 
 Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
@@ -61,9 +61,14 @@ Parameters : --dataset="Input file path"
 	      --working_dir="Working directory,a Working directory is used for storing a model for one algorithm"
 	      --report="Path of report"
 
+e.g.
+java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/bookPost70000.dat --trainer_class=TrainWTM --suggester_class=SMTTagSuggest --num_folds=5 --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" --working_dir=/data/disk1/private/ydm/tryWTM/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_WTMreal.txt
+
+-Xmx5G is set the working RAM.
+
 The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation for data that focus on books and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
-If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.And if you want to work in Windows,you must compile the GIZA++, mkcls, and plain2snt.out again.They are in /giza-pp and compile by command "make".Then you should fix some code in TrainWTM/TrainWAM*,relpace "GIZA++" with "GIZA++.exe","mkcls" with "mkcls.exe","plain2snt.out" with "plain2snt.out.exe".
+If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.And if you want to work in Windows,you must compile the GIZA++, mkcls, and plain2snt.out again.They are in /giza-pp and compile by make.Then you should fix some code in TrainWTM/TrainWAM*,replacing "GIZA++" with "GIZA++.exe","mkcls" with "mkcls.exe","plain2snt.out" with "plain2snt.out.exe".
 
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
 
