@@ -49,7 +49,7 @@ ant : Start a terminal in the directory "THUTag/", input command "ant" and then 
 Part III: How To Run Cross-validation of THUTag
 ==============
 
-There are some examples in file "Command_Example".And there is a demo in "/demo".
+There are a lot of examples in file "Command_Example".And there is a demo in "/demo".You'd use commandline to run the algorithm beacuse it need to set the working RAM.
 
 Test a single algorithm using Cross Evaluation : Specific commands can be found in file "command", a Training Class is corresponding to exactly a Suggesting Class. (Part VII Appendix show the correspondence between Training Class and Suggesting Class)
 
@@ -58,12 +58,17 @@ Parameters : --dataset="Input file path"
 	      --suggester_class="Name of Suggesting Class"
 	      --num_folds="Num the file divided into"
 	      --config="Parameter1=Value1;Parameter2=Value2;..."(The parameters can be dataType, k, numtopics, niter, etc.. Parameters vary with models and no parameter means using default values)
-	      --working_dir="Working directory"
+	      --working_dir="Working directory,a Working directory is used for storing a model for one algorithm"
 	      --report="Path of report"
+
+e.g.
+java -Xmx5G -jar tagsuggest.jar evaluation.CrossValidator --dataset=/data/disk1/private/ydm/data/bookPost70000.dat --trainer_class=TrainWTM --suggester_class=SMTTagSuggest --num_folds=5 --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" --working_dir=/data/disk1/private/ydm/tryWTM/ --at_n=10 --report=/data/disk1/private/ydm/report/evaluation_WTMreal.txt
+
+-Xmx5G is set the working RAM.
 
 The default path of book.model and chinese_stop_word.txt is the same with the path of tagsuggest.jar. If you need change the path of them, you should add model="Path of both of them" to --config. "book.model" is used for maximum forward word-segmentation for data that focus on books and "chinese_stop_word" records the stop words in chinese. e.g. --config="model=/home/meepo/TagSuggestion;dataType=DoubanPost;"
 
-If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.
+If you want to run SMT, you need another three files GIZA++, mkcls, and plain2snt.out. Their default path is the same with the path of tagsuggest.jar.And if you want to work on Windows,you must compile the GIZA++, mkcls, and plain2snt.out again.They are in /giza-pp and compile by make(it will be a little difficult).Then you should fix some code in TrainWTM/TrainWAM*,replacing "GIZA++" with "GIZA++.exe","mkcls" with "mkcls.exe","plain2snt.out" with "plain2snt.out.exe".
 
 If you need change the path of them, you should add --giza_path="Path of them" as a parameter to the command.
 
@@ -95,7 +100,7 @@ The evaluation results on Keyword Post Dataset (M_d=2,select the two keywords wi
 Part IV: Datasets and Formats for Evaluation
 ==============
 
-We share two datasets in "traindata/" for evaluation. The both datasets are in Chinese. The KeywordPost.dot is from NetEase News, which can be used for keyphrase extraction. The bookPost70000.dat and post.dat are from Douban Book, which can be used for social tag suggestion. The formats of these datasets are as follows:
+We share two datasets in "traindata/" for evaluation. The both datasets are in Chinese. The KeywordPost.dot is from NetEase News, which can be used for keyphrase extraction algorithm. The bookPost70000.dat and post.dat are from Douban Book, which can be used for social tag suggestion algorithm. The formats of these datasets are as follows:
 
 dataType=Post : {"id":"document id","content":"document content","extras":"","resourceKey":"","timestamp":0,"title":"document title","userId":"","tags":["tag1","tag2","tag3",...]}   (Focus on books)
 
@@ -105,10 +110,13 @@ dataType=DoubanPost : {"doubanTags":{"tag1":weight,"tag2":weight,"tag3":weight,.
 
 Example : {"doubanTags":{"文化":5,"献给非哲学家的小哲学":6,"哲学":29,"法国":17},"id":"1000047","content":"全球化是必然趋势？仁者见仁，智者见智。有人惊呼：“狼来了！”有人担忧：“怎么办？”还有人在思考：“对世界来说，经济可以全球化，甚至货币也可以一体化，但文化则要鼓励多元化。”是的，只有本着文化多元化的精神，在尊重其他民族文化的同时，自身才能获得不断的发展与丰富。法国人做出了自己的探索与努力。今天，您面前的这一套“法兰西书库·睿哲系列”为您打开了一扇沟通的窗口。他山之石，可以攻玉。我们希望这样的对话可以走得越来越远。","tags":[],"timestamp":0,"resourceKey":"","title":"献给非哲学家的小哲学  睿哲系列","userId":"","extras":""}   (Demo file is bookPost70000.dat)
 
+The difference of the above two is that bookPost70000.dat is used for WTM/PMI because they need to know the weight of tags.And the other social tag suggestion algorithm uses post.dat.(see file "Command_Example")
+
 dataType=KeywordPost : {"date": "news date","summary":"news summary"，"source":"news source","id":"document id","content":"document content","title":"news title","resourceKey":"","extras":"","userId":"","tags":["tag1","tag2","tag3",...]}  (Focus on news)
 
 Example : {"date":"2010-6-12 3:39:39","summary":"核心提示：重庆市政府公众信息网发布消息称，经2010年5月13日市政府第70次常务会议通过，给予文强、陈洪刚二人行政开除处分。","source":"http://news.163.com/10/0612/03/68USU60D000146BD.html","id":"0","content":"重庆晚报6月11日报道  昨日，市政府公众信息网发布消息称，经2010年5月13日市政府第70次常务会议通过，给予文强、陈洪刚二人行政开除处分。\n今年4月14日，市第五中级人民法院以受贿罪，包庇、纵容黑社会性质组织罪，巨额财产来源不明罪，强奸罪数罪并罚判处文强死刑，剥夺政治权利终身，并处没收个人全部财产。5月21日，市高级人民法院对文强案二审宣判，依法驳回文强上诉，维持一审的死刑判决。\n2月25日，市公安局交警总队原总队长陈洪刚受贿案在市第五中级人民法院一审宣判。陈洪刚因犯受贿，包庇、纵容黑社会性质组织，巨额财产来源不明，伪造居民身份证罪，数罪并罚，被判处有期徒刑20年，没收个人财产40万元人民币，追缴赃款326万余元及不明来源财产584万余元。记者 李伟\n","title":"重庆市政府给予文强行政开除处分","timestamp":0,"resourceKey":"","userId":"","tags":["文强","重庆"],"extras":""} (Demo file is KeywordPost.dat)
 
+The KeywordPost.dat is used for keyphrase extraction algorithm.
 
 Part V: Output File Formats of Cross-validation
 ==============
@@ -198,6 +206,7 @@ For any questions about this package, you can contact us at thunlp@gmail.com .
 Part XII: Appendix
 ==============
 The correspondence between Training Class and Suggesting Class
+There are a lot of examples in file "Command_Example".
 
 | Training Class | Suggesting Class |
 |---|:---|
