@@ -41,7 +41,7 @@ GIZA++  mkcls  plain2snt.out : Essential to running WTM/WAM/WAM*
 Part II: How To Compile THUTag
 ==============
 
-Environment : java (support java 1.8.0)
+Environment : java (support java 1.8.0) , Linux
 
 ant : Start a terminal in the directory "THUTag/", input command "ant" and then THUTag will be compiled; or you can choose the build.xml for "ant build" in eclipse.
 
