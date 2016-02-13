@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/language/english
+END
+stopwords.en.txt
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/3046/toolbox/base/src/java/org/thunlp/language/english/stopwords.en.txt
+END
+EnglishWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/2216/toolbox/base/src/java/org/thunlp/language/english/EnglishWordSegment.java
+END
+Stopwords.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/language/english/Stopwords.java
+END
+PorterStemmer.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/2116/toolbox/base/src/java/org/thunlp/language/english/PorterStemmer.java
+END
+EnglishStemmer.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/2216/toolbox/base/src/java/org/thunlp/language/english/EnglishStemmer.java
+END

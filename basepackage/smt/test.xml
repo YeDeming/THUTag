@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  An excerpt of an egocentric social network  -->
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+<graph edgedefault="undirected">
+
+<!-- data schema -->
+<key id="name" for="node" attr.name="name" attr.type="string"/>
+<key id="gender" for="node" attr.name="gender" attr.type="string"/>)
+
+<!-- nodes -->
+<node id="1">
+ <data key="name">1</data>
+ <data key="gender">M</data>
+ </node>
+<node id="2">
+ <data key="name">2</data>
+ <data key="gender">F</data>
+ </node>
+<node id="3">
+ <data key="name">3</data>
+ <data key="gender">M</data>
+ </node>
+<node id="4">
+ <data key="name">4</data>
+ <data key="gender">F</data>
+ </node>
+<node id="5">
+ <data key="name">5</data>
+ <data key="gender">M</data>
+ </node>
+<node id="6">
+ <data key="name">6</data>
+ <data key="gender">F</data>
+ </node>
+
+<!-- edges -->
+<edge source="5" target="6"></edge>
+
+</graph>
+</graphml>

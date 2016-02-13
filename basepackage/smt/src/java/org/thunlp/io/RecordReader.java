@@ -1,0 +1,149 @@
+package org.thunlp.io;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.thunlp.hadoop.FolderReader;
+
+/**
+ * Read string records from data files. This class supports 4 formats, they are:
+ * 1) plain text file, 2) gzipped text file, 3) zip archive with multiple ".txt"
+ * files inside. 4) Hadoop sequence file with text key/value.
+ * 
+ * @author sixiance
+ *
+ */
+public class RecordReader {
+	public static int TYPE_PLAIN_TEXT = 0;
+	public static int TYPE_ZIPPED_TEXT = 1;
+	public static int TYPE_GZIPPED_TEXT = 2;
+	public static int TYPE_SEQUENCE_FILE = 3;
+
+	protected BufferedReader reader = null;
+	protected ZipInputStream zipin = null;
+	protected FolderReader sequenceFileReader = null;
+	protected boolean isSequenceFile = false;
+	protected int numRead = 0;
+	protected Text key = new Text();
+	protected Text value = new Text();
+	protected String currentKey = null;
+	protected String currentValue = null;
+
+	// Automatic detect the type and file system of the file.
+	public RecordReader(String name) throws IOException {
+		this(name, "UTF-8");
+	}
+
+	// Automatic detect the type and file system of the file.
+	public RecordReader(String name, String charset) throws IOException {
+		this(name, charset, detectType(name), detectFs(name));
+	}
+
+	public RecordReader(String name, String charset, int type, boolean onHdfs) throws IOException {
+		if (onHdfs && name.startsWith("/hdfs/")) {
+			name = name.substring("/hdfs".length());
+		}
+		if (type == RecordReader.TYPE_PLAIN_TEXT) {
+			reader = new BufferedReader(new InputStreamReader(getInputStream(name, onHdfs), charset));
+			isSequenceFile = false;
+		} else if (type == RecordReader.TYPE_GZIPPED_TEXT) {
+			reader = new BufferedReader(
+					new InputStreamReader(new GZIPInputStream(getInputStream(name, onHdfs)), charset));
+			isSequenceFile = false;
+		} else if (type == RecordReader.TYPE_ZIPPED_TEXT) {
+			zipin = new ZipInputStream(getInputStream(name, onHdfs));
+			reader = new BufferedReader(new InputStreamReader(zipin, charset));
+			zipin.getNextEntry();
+			isSequenceFile = false;
+		} else if (type == RecordReader.TYPE_SEQUENCE_FILE) {
+			sequenceFileReader = new FolderReader(new Path(name));
+			isSequenceFile = true;
+		}
+	}
+
+	public boolean next() throws IOException {
+		boolean success = false;
+		if (isSequenceFile) {
+			success = sequenceFileReader.next(key, value);
+		} else {
+			currentValue = reader.readLine();
+			if (currentValue == null && zipin != null) {
+				zipin.closeEntry();
+				ZipEntry ze = zipin.getNextEntry();
+				currentValue = reader.readLine();
+				success = (ze != null && currentValue != null);
+			}
+			success = (currentValue != null);
+		}
+		if (success)
+			numRead++;
+		return success;
+	}
+
+	public int numRead() {
+		return numRead;
+	}
+
+	public String key() {
+		if (isSequenceFile)
+			currentKey = key.toString();
+		return currentKey;
+	}
+
+	public String value() {
+		if (isSequenceFile)
+			currentValue = value.toString();
+		return currentValue;
+	}
+
+	public void close() throws IOException {
+		if (isSequenceFile) {
+			sequenceFileReader.close();
+		} else {
+			if (zipin != null)
+				zipin.closeEntry();
+			reader.close();
+		}
+	}
+
+	private InputStream getInputStream(String path, boolean onHdfs) throws IOException {
+		if (onHdfs) {
+			FileSystem fs = FileSystem.get(new JobConf());
+			return fs.open(new Path(path));
+		} else {
+			return new FileInputStream(path);
+		}
+	}
+
+	public static boolean detectFs(String name) {
+		if (name.startsWith("dfs:"))
+			return true;
+		if (name.startsWith("hdfs:"))
+			return true;
+		if (name.startsWith("/hdfs/"))
+			return true;
+		return false;
+	}
+
+	public static int detectType(String name) {
+		if (name.endsWith(".gz")) {
+			return RecordReader.TYPE_GZIPPED_TEXT;
+		} else if (name.endsWith(".zip")) {
+			return RecordReader.TYPE_ZIPPED_TEXT;
+		} else if (name.endsWith(".sf")) {
+			return RecordReader.TYPE_SEQUENCE_FILE;
+		} else {
+			return RecordReader.TYPE_PLAIN_TEXT;
+		}
+	}
+}

@@ -1,0 +1,133 @@
+package org.thunlp.io;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map.Entry;
+
+import org.thunlp.io.TextFileReader;
+import org.thunlp.io.TextFileWriter;
+
+public class JsonWrapperGenerator {
+	
+	private static TextFileWriter output = null;
+
+	/**
+	 * @param args
+	 * @throws Exception 
+	 */
+	public static void main(String[] args) throws Exception {
+		if ( args.length != 2 ) {
+			System.out.println("usage: <define file> <output path>");
+			return;
+		}
+		
+		TextFileReader r = new TextFileReader( args[0] );
+
+		String l;
+		String classname = "";
+		String packagename = "";
+		Hashtable<String, String> fields = new Hashtable<String, String>();
+		while ( (l=r.readLine())!= null) {
+			if ( l.startsWith("packagename:") ) {
+				packagename = l.substring("packagename:".length());
+			} else if ( l.startsWith("classname:") ) {
+				classname = l.substring("classname:".length());
+			} else if ( l.startsWith("String:") || 
+					l.startsWith("long:") || 
+					l.startsWith("double:") ||
+					l.startsWith("int") ) {
+				String [] cols = l.split(":");
+				fields.put(cols[1], cols[0]);
+			} 
+		}
+		r.close();
+		
+		output = new TextFileWriter( args[1] + "/" + classname + ".java" );
+		// generate file header
+		out("// THIS IS AUTOMATICALLY GENERATED CLASS, DO NOT MODIFY ");
+		out("package " + packagename + ";");
+		out("import org.json.JSONArray;");
+		out("import org.json.JSONException;");
+		out("public class " + classname + " {");
+		
+		// output static indexers
+		int n = 0;
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			String defaultValue = Character.isUpperCase(e.getValue().charAt(0))
+										? "\"\"" : "0"; 
+			out("\tpublic static int JSON_" + e.getKey() + " = " + n + ";");
+			out("\tprivate " + e.getValue() + " " + e.getKey() + " = " + 
+					defaultValue + ";");
+			n++;
+		}
+		
+		// output getter and setter 
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			out("\t// " + e.getKey() );
+			out("\tpublic " + e.getValue() + " get" 
+					+ initialUpper(e.getKey()) + " () { ");
+			out("\t\treturn " + e.getKey() + ";");
+			out("\t}");
+			
+			out("\tpublic void set" 
+					+ initialUpper(e.getKey()) 
+					+ " ( " + e.getValue() + " value ) { ");
+			out("\t\tthis." + e.getKey() + " = value ;");
+			out("\t}");
+		}
+		
+		// output serializer 
+		out("\tpublic boolean fromJsonString ( String jsonString ) {");
+		out("\t\tJSONArray json = null;");
+		out("\t\ttry {");
+		out("\t\t\tjson = new JSONArray(jsonString);");
+	
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			out("\t\tthis." + e.getKey() + " = json.get" 
+					+ initialUpper(e.getValue()) 
+					+ "( JSON_" + e.getKey() + ");" );
+		}
+		out("\t\t} catch (JSONException e)  {");
+		out("\t\t\treturn false;");
+		out("\t\t}");
+		out("\t\treturn true;");
+		out("\t} // deserializer end");
+		
+		
+		out("\tpublic String toString () {");
+		out("\t\tJSONArray json = new JSONArray();");
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			out("\t\tjson.put(" + e.getKey() + ");" );
+		}
+		out("\t\treturn json.toString();");
+		out("\t} // serializer end");
+		
+		
+		out("\tpublic void copyFrom ( " + classname + " obj ) {");
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			out("\t\tthis." + e.getKey() + " = obj." + e.getKey() + ";" );
+		}
+		out("\t} // copier end");
+		
+		out("\tpublic void reset ( ) {");
+		for ( Entry<String, String> e : fields.entrySet() ) {
+			String defaultValue = Character.isUpperCase(e.getValue().charAt(0))
+				? "\"\"" : "0"; 
+			out("\t\tthis." + e.getKey() + " = " + defaultValue + ";" );
+		}
+		out("\t} // copier end");
+		
+		out("} // class end");
+		output.close();
+	}
+	
+	private static void out(String o) throws IOException {
+		output.write(o + "\n");
+	}
+	
+	private static String initialUpper( String str ) {
+		return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+	}
+
+}

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/2712/toolbox/base/src/java/org/thunlp/matrix
+END
+MatrixFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/2603/toolbox/base/src/java/org/thunlp/matrix/MatrixFactory.java
+END
+MatrixInterface.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/2627/toolbox/base/src/java/org/thunlp/matrix/MatrixInterface.java
+END
+NormalMatrix.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/2612/toolbox/base/src/java/org/thunlp/matrix/NormalMatrix.java
+END
+MatrixUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/2612/toolbox/base/src/java/org/thunlp/matrix/MatrixUtil.java
+END
+SparseMatrix.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/2612/toolbox/base/src/java/org/thunlp/matrix/SparseMatrix.java
+END

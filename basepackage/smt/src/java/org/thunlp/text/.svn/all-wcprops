@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/text
+END
+TfOnlyTermWeighter.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/TfOnlyTermWeighter.java
+END
+DocumentVector.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/DocumentVector.java
+END
+Term.java
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/Term.java
+END
+TfIdfTermWeighter.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/TfIdfTermWeighter.java
+END
+Lexicon.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/text/Lexicon.java
+END
+FuzzyHash.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/FuzzyHash.java
+END
+BinaryTermWeighter.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/BinaryTermWeighter.java
+END
+TermWeighter.java
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/TermWeighter.java
+END

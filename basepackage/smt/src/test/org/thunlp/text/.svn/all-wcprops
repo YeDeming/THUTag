@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/2128/toolbox/base/src/test/org/thunlp/text
+END
+DocumentVectorTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/text/DocumentVectorTest.java
+END
+EnglishTextClassifierTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/2128/toolbox/base/src/test/org/thunlp/text/EnglishTextClassifierTest.java
+END
+BigramChineseTextClassifierTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/text/BigramChineseTextClassifierTest.java
+END
+LexiconTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/1487/toolbox/base/src/test/org/thunlp/text/LexiconTest.java
+END
+FuzzyHashTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/text/FuzzyHashTest.java
+END

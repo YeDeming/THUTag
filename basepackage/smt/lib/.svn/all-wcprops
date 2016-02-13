@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/3421/toolbox/base/lib
+END
+sitecapturer.jar
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/496/toolbox/base/lib/sitecapturer.jar
+END
+lucene-core-2.2.0.jar
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/336/toolbox/base/lib/lucene-core-2.2.0.jar
+END
+commons-collections-3.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/3245/toolbox/base/lib/commons-collections-3.1.jar
+END
+commons-codec-1.3.jar
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/496/toolbox/base/lib/commons-codec-1.3.jar
+END
+thumbelina.jar
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/496/toolbox/base/lib/thumbelina.jar
+END
+htmllexer.jar
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/496/toolbox/base/lib/htmllexer.jar
+END
+commons-cli-1.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/906/toolbox/base/lib/commons-cli-1.1.jar
+END
+commons-httpclient-3.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/496/toolbox/base/lib/commons-httpclient-3.0.1.jar
+END
+filterbuilder.jar
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/496/toolbox/base/lib/filterbuilder.jar
+END
+weka.jar
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/336/toolbox/base/lib/weka.jar
+END
+junit-3.8.1.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/496/toolbox/base/lib/junit-3.8.1.1.jar
+END
+hadoop-0.20.1-core.jar
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/3181/toolbox/base/lib/hadoop-0.20.1-core.jar
+END
+libsvm.jar
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/3046/toolbox/base/lib/libsvm.jar
+END
+commons-logging-1.0.4.jar
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/496/toolbox/base/lib/commons-logging-1.0.4.jar
+END
+htmlparser.jar
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/496/toolbox/base/lib/htmlparser.jar
+END
+hadooputils.jar
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1378/toolbox/base/lib/hadooputils.jar
+END
+log4j-1.2.13.jar
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1691/toolbox/base/lib/log4j-1.2.13.jar
+END
+jackson-core-asl-1.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/3245/toolbox/base/lib/jackson-core-asl-1.0.1.jar
+END
+jackson-mapper-asl-1.0.1.jar
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/3245/toolbox/base/lib/jackson-mapper-asl-1.0.1.jar
+END

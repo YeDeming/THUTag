@@ -1,0 +1,16 @@
+package org.thunlp.crawler;
+
+public interface CrawlerListener {
+
+	public void handleSuccess ( String url, String ip,
+						byte [] content, String [] responseHeaders, 
+						Object customData );
+
+	public void handleFailed ( String url, String ip, int httpStatusCode, 
+						Object customData);
+	
+	public void workersAvailable ( int capacity );
+
+	public void workerQueueAvailable ( int hashcode, int capacity ); 
+
+}

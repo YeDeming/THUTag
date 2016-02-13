@@ -1,0 +1,29 @@
+package org.thunlp.language.chinese;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.LinkedList;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
+import org.apache.lucene.analysis.Token;
+
+public class WordChineseTokenizerTest extends TestCase {
+	public void testGetToken() throws IOException {
+		String content = "我们的生活\n很美好";
+		String[] str = { "我们", "们的", "的生", "生活", "很美", "美好" };
+		StringReader reader = new StringReader(content);
+		WordSegment ws = new BigramWordSegment();
+		WordChineseTokenizer tokenizer = new WordChineseTokenizer(ws, reader);
+		LinkedList<Token> results = new LinkedList<Token>();
+		Token t;
+		while ((t = tokenizer.next()) != null) {
+			results.add(t);
+		}
+		Assert.assertEquals(str.length, results.size());
+		for (int i = 0; i < results.size(); i++) {
+			Assert.assertEquals(str[i], results.get(i).termText());
+		}
+	}
+}

@@ -1,0 +1,18 @@
+package org.thunlp.html;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
+public class EncodingDetectorTest extends TestCase {
+	public void testBasic () throws IOException {
+		FileInputStream is = new FileInputStream("src/test/org/thunlp/html/sample-page.html");
+		byte [] page = new byte[40 * 1024];
+		is.read( page );
+		is.close();
+		String charset = EncodingDetector.detect( page );
+		Assert.assertEquals("gb2312", charset);
+	}
+}

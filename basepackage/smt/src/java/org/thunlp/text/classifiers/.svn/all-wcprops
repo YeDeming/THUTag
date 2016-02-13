@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/2217/toolbox/base/src/java/org/thunlp/text/classifiers
+END
+AbstractTextClassifier.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/2217/toolbox/base/src/java/org/thunlp/text/classifiers/AbstractTextClassifier.java
+END
+EnglishTextClassifier.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/2128/toolbox/base/src/java/org/thunlp/text/classifiers/EnglishTextClassifier.java
+END
+TextClassifier.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/2128/toolbox/base/src/java/org/thunlp/text/classifiers/TextClassifier.java
+END
+BigramChineseTextClassifier.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/2128/toolbox/base/src/java/org/thunlp/text/classifiers/BigramChineseTextClassifier.java
+END
+EnglishTextClassifierTester.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/2128/toolbox/base/src/java/org/thunlp/text/classifiers/EnglishTextClassifierTester.java
+END
+ChineseTextClassifierTester.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/classifiers/ChineseTextClassifierTester.java
+END
+ClassifyResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/text/classifiers/ClassifyResult.java
+END

@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/3421/toolbox/base/src/test/org/thunlp/io
+END
+TestTextFileWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/io/TestTextFileWriter.java
+END
+TestTextFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/io/TestTextFileReader.java
+END
+JsonUtilTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/3421/toolbox/base/src/test/org/thunlp/io/JsonUtilTest.java
+END
+RecordReaderTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/3131/toolbox/base/src/test/org/thunlp/io/RecordReaderTest.java
+END
+RecordWriterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/3130/toolbox/base/src/test/org/thunlp/io/RecordWriterTest.java
+END
+textfile.txt
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/io/textfile.txt
+END
+bigtextfile.txt
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/io/bigtextfile.txt
+END

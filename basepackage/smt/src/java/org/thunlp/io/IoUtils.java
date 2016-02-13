@@ -1,0 +1,51 @@
+package org.thunlp.io;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Logger;
+
+public class IoUtils {
+	private static Logger LOG = Logger.getAnonymousLogger();
+
+	public static interface LineMapper {
+		public String map(String line);
+	}
+
+	public static void mapLines(File input, File output, LineMapper mapper, int logAtEach) throws IOException {
+		TextFileReader r = new TextFileReader(input);
+		TextFileWriter w = new TextFileWriter(output);
+		int n = 0;
+		String line;
+		while ((line = r.readLine()) != null) {
+			String mapped = mapper.map(line);
+			if (mapped != null) {
+				w.writeLine(mapped);
+			}
+			if (logAtEach > 0 && n % logAtEach == 0) {
+				LOG.info("processing " + n);
+			}
+			n++;
+		}
+		r.close();
+		w.close();
+	}
+
+	public static void mapGzipLines(File input, File output, LineMapper mapper, int logAtEach) throws IOException {
+		GzipTextFileReader r = new GzipTextFileReader(input);
+		GzipTextFileWriter w = new GzipTextFileWriter(output);
+		int n = 0;
+		String line;
+		while ((line = r.readLine()) != null) {
+			String mapped = mapper.map(line);
+			if (mapped != null) {
+				w.writeLine(mapped);
+			}
+			if (logAtEach > 0 && n % logAtEach == 0) {
+				LOG.info("[gz] processing " + n);
+			}
+			n++;
+		}
+		r.close();
+		w.close();
+	}
+}

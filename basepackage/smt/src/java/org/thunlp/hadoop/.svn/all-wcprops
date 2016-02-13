@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/3612/toolbox/base/src/java/org/thunlp/hadoop
+END
+MapReduceHelper.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/3612/toolbox/base/src/java/org/thunlp/hadoop/MapReduceHelper.java
+END
+ReduceOnlyJobConf.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/ReduceOnlyJobConf.java
+END
+TextMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/3242/toolbox/base/src/java/org/thunlp/hadoop/TextMapper.java
+END
+HdfsReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/3164/toolbox/base/src/java/org/thunlp/hadoop/HdfsReader.java
+END
+TextMapReduceJobConf.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/TextMapReduceJobConf.java
+END
+IntPairWritable.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/3243/toolbox/base/src/java/org/thunlp/hadoop/IntPairWritable.java
+END
+InMemoryJobRunner.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/InMemoryJobRunner.java
+END
+SparseVectorWritable.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/3243/toolbox/base/src/java/org/thunlp/hadoop/SparseVectorWritable.java
+END
+HdfsGZIPFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/3242/toolbox/base/src/java/org/thunlp/hadoop/HdfsGZIPFileReader.java
+END
+FolderWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/FolderWriter.java
+END
+HdfsPlainFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/3242/toolbox/base/src/java/org/thunlp/hadoop/HdfsPlainFileReader.java
+END
+MapReduceJobConf.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/MapReduceJobConf.java
+END
+TextReducer.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/TextReducer.java
+END
+DynamicListWritable.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/3243/toolbox/base/src/java/org/thunlp/hadoop/DynamicListWritable.java
+END
+MapOnlyJobConf.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/3112/toolbox/base/src/java/org/thunlp/hadoop/MapOnlyJobConf.java
+END
+HdfsZipFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/3242/toolbox/base/src/java/org/thunlp/hadoop/HdfsZipFileReader.java
+END
+FolderReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/3242/toolbox/base/src/java/org/thunlp/hadoop/FolderReader.java
+END

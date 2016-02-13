@@ -1,0 +1,60 @@
+package org.thunlp.text;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
+import org.thunlp.text.classifiers.ClassifyResult;
+import org.thunlp.text.classifiers.EnglishTextClassifier;
+
+public class EnglishTextClassifierTest extends TestCase {
+	String[][] trainingSet = {
+			{ "Computer have disks", "Computer is a machine with disks",
+					"It can compute the number of disks, without a disk" },
+			{ "Sun rises everyday, the sun shines on the earth",
+					"Do not look into the sun, or the sun will burn your eyes", "Earth runs around the sun" } };
+
+	String[][] testSet = { { "You can buy a computer with 3 disks", "Computer runs with a disk" },
+			{ "Do not look the sun", "We are on the earth, looking at the sun" } };
+
+	public void testClassify() {
+		EnglishTextClassifier tc = new EnglishTextClassifier(2);
+		for (int label = 0; label < trainingSet.length; label++) {
+			for (int i = 0; i < trainingSet[label].length; i++) {
+				tc.addTrainingText(trainingSet[label][i], label);
+			}
+		}
+		boolean ret = tc.train();
+		Assert.assertTrue(ret);
+		for (int label = 0; label < testSet.length; label++) {
+			for (int i = 0; i < testSet[label].length; i++) {
+				ClassifyResult cr = tc.classify(testSet[label][i]);
+				System.out.println("Classifying [" + testSet[label][i] + "] " + label);
+				Assert.assertEquals(label, cr.label);
+				System.out.println(cr.prob);
+			}
+		}
+	}
+
+	public void testStringSerialization() {
+		EnglishTextClassifier tc = new EnglishTextClassifier(2);
+		for (int label = 0; label < trainingSet.length; label++) {
+			for (int i = 0; i < trainingSet[label].length; i++) {
+				tc.addTrainingText(trainingSet[label][i], label);
+			}
+		}
+		boolean ret = tc.train();
+		String serialized = tc.saveToString();
+
+		EnglishTextClassifier tc1 = new EnglishTextClassifier(2);
+		tc1.loadFromString(serialized);
+
+		for (int label = 0; label < testSet.length; label++) {
+			for (int i = 0; i < testSet[label].length; i++) {
+				ClassifyResult cr = tc1.classify(testSet[label][i]);
+				System.out.println("Classifying [" + testSet[label][i] + "] " + label);
+				Assert.assertEquals(label, cr.label);
+				System.out.println(cr.prob);
+			}
+		}
+	}
+}

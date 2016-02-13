@@ -1,0 +1,142 @@
+package org.thunlp.io;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.thunlp.hadoop.FolderReader;
+
+public class RecordWriterTest extends TestCase {
+    private String [] keys = {"aaa", "bbb", "ccc"};
+    private String [] values = {"asdfawaaa", "bbawverwab", "awefaweccc"};
+    private String filename;
+    @Override
+    public void setUp() throws IOException {
+      File tmpFile = File.createTempFile("testcase", ".txt");
+      filename = tmpFile.getAbsolutePath();
+    }
+    
+    @Override
+    public void tearDown() throws IOException {
+      File plainText = new File(filename);
+      plainText.delete();
+      File gzipped = new File(filename + ".gz");
+      gzipped.delete();
+      File zipped = new File(filename + ".zip");
+      zipped.delete();
+      Path p = new Path(filename + ".sf");
+      FileSystem.get(new JobConf()).delete(p, true);
+    }
+    
+    public void testWritePlainText() throws IOException {
+      RecordWriter writer = new RecordWriter(
+          filename, "UTF-8", RecordWriter.TYPE_PLAIN_TEXT, false);
+      for (int i = 0; i < values.length; i++) {
+        writer.add(values[i]);
+      }
+      writer.close();
+      
+      // Check the result.
+      BufferedReader reader = new BufferedReader(
+          new InputStreamReader(new FileInputStream(filename), "UTF-8"));
+      int n = 0;
+      String line;
+      while ((line = reader.readLine()) != null) {
+        Assert.assertEquals(values[n], line);
+        n++;
+      }
+      Assert.assertEquals(values.length, n);
+      reader.close();
+    }
+    
+    public void testWriteGzippedText() throws IOException {
+      RecordWriter writer = new RecordWriter(
+          filename + ".gz", "UTF-8", RecordWriter.TYPE_GZIPPED_TEXT, false);
+      for (int i = 0; i < values.length; i++) {
+        writer.add(values[i]);
+      }
+      writer.close();
+      
+      // Check the result.
+      BufferedReader reader = 
+        new BufferedReader(
+            new InputStreamReader(
+                new GZIPInputStream(
+                    new FileInputStream(filename + ".gz")), "UTF-8"));
+      int n = 0;
+      String line;
+      while ((line = reader.readLine()) != null) {
+        Assert.assertEquals(values[n], line);
+        n++;
+      }
+      Assert.assertEquals(values.length, n);
+      reader.close();
+    }
+    
+    public void testWriteZipText() throws IOException {
+      RecordWriter writer = new RecordWriter(
+          filename + ".zip", "UTF-8", RecordWriter.TYPE_ZIPPED_TEXT, false);
+      for (int i = 0; i < values.length; i++) {
+        writer.add(values[i]);
+      }
+      writer.close();
+      
+      // Check the result.
+      ZipInputStream zin =
+        new ZipInputStream(new FileInputStream(filename + ".zip"));
+      BufferedReader reader = 
+        new BufferedReader(
+            new InputStreamReader(zin, "UTF-8"));
+      int n = 0;
+      String line;
+      while (true) {
+        line = reader.readLine();
+        if (line == null) {
+          zin.closeEntry();
+          ZipEntry ze = zin.getNextEntry();
+          line = reader.readLine();
+          if (zin == null || line == null)
+            break;
+        }
+        Assert.assertEquals(values[n], line);
+        n++;
+      }
+      Assert.assertEquals(values.length, n);
+      zin.closeEntry();
+      reader.close();
+    }
+    
+    public void testWriteSequenceFile() throws IOException {
+      RecordWriter writer = new RecordWriter(
+          filename + ".sf", "UTF-8", RecordWriter.TYPE_SEQUENCE_FILE, false);
+      for (int i = 0; i < values.length; i++) {
+        writer.add(keys[i], values[i]);
+      }
+      writer.close();
+      
+      // Check the result.
+      Text key = new Text();
+      Text value = new Text();
+      FolderReader reader = new FolderReader(new Path(filename + ".sf"));
+      int n = 0;
+      while (reader.next(key, value)) {
+        Assert.assertEquals(keys[n], key.toString());
+        Assert.assertEquals(values[n], value.toString());
+        n++;
+      }
+      Assert.assertEquals(values.length, n);
+      reader.close();
+    }
+}

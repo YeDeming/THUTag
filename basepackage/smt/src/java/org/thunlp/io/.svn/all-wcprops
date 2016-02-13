@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/3245/toolbox/base/src/java/org/thunlp/io
+END
+TextFileWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/2664/toolbox/base/src/java/org/thunlp/io/TextFileWriter.java
+END
+TextFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/2664/toolbox/base/src/java/org/thunlp/io/TextFileReader.java
+END
+IoUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/2699/toolbox/base/src/java/org/thunlp/io/IoUtils.java
+END
+JsonUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3245/toolbox/base/src/java/org/thunlp/io/JsonUtil.java
+END
+JsonWrapperGenerator.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/517/toolbox/base/src/java/org/thunlp/io/JsonWrapperGenerator.java
+END
+GzipTextFileReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/1721/toolbox/base/src/java/org/thunlp/io/GzipTextFileReader.java
+END
+GzipTextFileWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/1721/toolbox/base/src/java/org/thunlp/io/GzipTextFileWriter.java
+END
+RecordReader.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/3131/toolbox/base/src/java/org/thunlp/io/RecordReader.java
+END
+RecordWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/3131/toolbox/base/src/java/org/thunlp/io/RecordWriter.java
+END

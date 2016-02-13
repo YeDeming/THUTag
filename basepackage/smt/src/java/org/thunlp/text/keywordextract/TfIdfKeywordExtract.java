@@ -1,0 +1,49 @@
+package org.thunlp.text.keywordextract;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.thunlp.misc.Counter;
+import org.thunlp.misc.WeightString;
+import org.thunlp.text.Lexicon;
+import org.thunlp.text.TfIdfTermWeighter;
+import org.thunlp.text.Lexicon.Word;
+
+public class TfIdfKeywordExtract implements KeywordExtract {
+	Lexicon lexicon = null;
+	TfIdfTermWeighter termWeighter = null;
+	Counter<Word> tf = new Counter<Word>();
+
+	public TfIdfKeywordExtract(Lexicon lex) {
+		this.lexicon = lex;
+		termWeighter = new TfIdfTermWeighter(lexicon);
+	}
+
+	@Override
+	public List<WeightString> extract(String[] doc) {
+		Word[] words = lexicon.convertDocument(doc);
+		tf.clear();
+		for (Word w : words) {
+			tf.inc(w, 1);
+			System.out.println(w.getName() + " " + w.getDocumentFrequency());
+		}
+		List<WeightString> keywords = new ArrayList<WeightString>();
+		for (Word w : words) {
+			WeightString ws = new WeightString(w.getName(),
+					termWeighter.weight(w.getId(), tf.get(w) / (double) words.length, words.length));
+			keywords.add(ws);
+		}
+		Collections.sort(keywords, new Comparator<WeightString>() {
+
+			@Override
+			public int compare(WeightString o1, WeightString o2) {
+				return Double.compare(o2.weight, o1.weight);
+			}
+
+		});
+		return keywords;
+	}
+
+}

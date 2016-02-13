@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="base" default="all" basedir="./">
+    <target name="init" description="Initialize environment">
+        <property name="path.bin" value="bin"/>
+        <property name="path.build" value="build"/>
+				<property name="path.build.classes" value="build/classes"/>
+				<property name="path.build.tests" value="build/tests" />
+        <property name="path.lib" value="lib"/>
+        <property name="path.src" value="src/java"/>
+				<property name="path.tests" value="src/test" />
+        <property name="compile.debug" value="true"/>
+        <property name="compile.deprecation" value="true"/>
+        <property name="compile.optimize" value="true"/>
+        <property file="${basedir}/build.properties"/>
+
+        <path id="compile.classpath">
+            <fileset dir="${path.lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        
+				<path id="test.classpath">
+            <fileset dir="${path.lib}">
+                <include name="*.jar"/>
+            </fileset>
+						<pathelement path="${path.build.classes}" />
+        </path>
+
+    </target>
+
+    <target name="make_directories" description="Creates all project directories" depends="init">
+        <mkdir dir="${path.build}"/>
+				<mkdir dir="${path.build.classes}"/>
+				<mkdir dir="${path.build.tests}" />
+        <mkdir dir="${path.lib}"/>
+        <mkdir dir="${path.src}"/>
+    </target>
+
+    <target name="prepare" depends="init, make_directories" description="Prepare build directory">
+
+    </target>
+
+    <target name="compile" depends="prepare" description="Compile source">
+        <javac debug="${compile.debug}" encoding="UTF-8" deprecation="${compile.deprecation}" destdir="${path.build.classes}" optimize="${compile.optimize}" srcdir="${path.src}" target="1.5">
+            <classpath refid="compile.classpath"/>
+        </javac>
+    </target>
+
+    <target name="clean" depends="init" description="Wipeout all generated files">
+        <delete dir="${path.build}"/>
+    </target>
+
+		<target name="compile-test" depends="compile">
+			<javac encoding="UTF-8" target="1.5" srcdir="${path.tests}" destdir="${path.build.tests}">
+				<classpath refid="test.classpath"/>
+			</javac>
+		</target>
+
+		<target name="clean-compile-test">
+			<delete>
+				<fileset dir="${path.build.tests}" includes="**/*.class" />
+			</delete>
+		</target>
+
+		<target name="test" depends="compile-test">
+			<junit>
+				<classpath refid="test.classpath" />
+				<classpath>
+					<pathelement path="${path.build.tests}"/>
+				</classpath>
+				<formatter type="brief" usefile="false" />
+				<batchtest fork="yes">
+					<fileset dir="${path.build.tests}">
+						<include name="**/*Test.class" />
+					</fileset>
+				</batchtest>
+			</junit>
+		</target>
+
+    <target name="all" depends="clean,jar,src-zip" description="Clean and compile all components"/>
+
+    <target name="jar" depends="compile" description="Create binary distribution">
+    		<copy file="src/java/org/thunlp/language/chinese/lexicon.model" 
+    			todir="${path.build.classes}/org/thunlp/language/chinese"/>
+    		<copy file="src/java/org/thunlp/language/english/stopwords.en.txt" 
+    	    			todir="${path.build.classes}/org/thunlp/language/english"/>
+		<copy file="src/java/org/thunlp/language/chinese/stopwords.cn.txt" 
+	    			todir="${path.build.classes}/org/thunlp/language/chinese"/>
+        <jar basedir="${path.build.classes}" jarfile="${path.build}/base.jar">
+            <include name="**/*.class"/>
+        		<include name="**/*.model"/>
+        	<include name="**/*.txt"/>
+        </jar>
+    </target>
+
+    <target name="src-zip" depends="compile" description="Creates source distribution">
+        <delete>
+            <fileset dir="${path.build}" includes="*-src.zip"/>
+        </delete>
+        <zip basedir="src" destfile="${path.build}/base-src.zip" whenempty="fail">
+            <include name="**/*.*"/>
+            <include name="*"/>
+            <include name="**/*"/>
+            <exclude name="${path.dist}/**/*.*"/>
+            <exclude name="*.*~"/>      <!-- JEdit backups -->
+            <exclude name=".nbattrs"/>  <!-- Netbeans filesystem attributes -->
+            <exclude name="*.old"/>
+        </zip>
+    </target>
+
+    <target name="dist" depends="jar,src-zip"/>
+
+</project>

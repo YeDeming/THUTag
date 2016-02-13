@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/3623/toolbox/base/src/java/org/thunlp/misc
+END
+Base64.java
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3246/toolbox/base/src/java/org/thunlp/misc/Base64.java
+END
+SlidingWindowCounter.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/3249/toolbox/base/src/java/org/thunlp/misc/SlidingWindowCounter.java
+END
+AnyIntPair.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/2538/toolbox/base/src/java/org/thunlp/misc/AnyIntPair.java
+END
+Counter.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/3247/toolbox/base/src/java/org/thunlp/misc/Counter.java
+END
+StringPair.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/2718/toolbox/base/src/java/org/thunlp/misc/StringPair.java
+END
+DoublePair.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/2538/toolbox/base/src/java/org/thunlp/misc/DoublePair.java
+END
+IntPair.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/2538/toolbox/base/src/java/org/thunlp/misc/IntPair.java
+END
+WeightString.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/2653/toolbox/base/src/java/org/thunlp/misc/WeightString.java
+END
+Flags.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/3248/toolbox/base/src/java/org/thunlp/misc/Flags.java
+END
+AnyDoublePair.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/2538/toolbox/base/src/java/org/thunlp/misc/AnyDoublePair.java
+END
+StringUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/3623/toolbox/base/src/java/org/thunlp/misc/StringUtil.java
+END
+TopPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/2537/toolbox/base/src/java/org/thunlp/misc/TopPool.java
+END

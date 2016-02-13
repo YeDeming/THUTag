@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/language/chinese
+END
+lexicon.model
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/889/toolbox/base/src/java/org/thunlp/language/chinese/lexicon.model
+END
+stopwords.cn.txt
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/language/chinese/stopwords.cn.txt
+END
+BigramWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/1457/toolbox/base/src/java/org/thunlp/language/chinese/BigramWordSegment.java
+END
+ChineseLanguageConstants.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/2321/toolbox/base/src/java/org/thunlp/language/chinese/ChineseLanguageConstants.java
+END
+ForwardMaxWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/1456/toolbox/base/src/java/org/thunlp/language/chinese/ForwardMaxWordSegment.java
+END
+WordChineseAnalyzer.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/language/chinese/WordChineseAnalyzer.java
+END
+WordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/language/chinese/WordSegment.java
+END
+Stopwords.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/3421/toolbox/base/src/java/org/thunlp/language/chinese/Stopwords.java
+END
+NaiveBigramWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/language/chinese/NaiveBigramWordSegment.java
+END
+IctclasWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/2951/toolbox/base/src/java/org/thunlp/language/chinese/IctclasWordSegment.java
+END
+WordChineseTokenizer.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/336/toolbox/base/src/java/org/thunlp/language/chinese/WordChineseTokenizer.java
+END
+LangUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/2606/toolbox/base/src/java/org/thunlp/language/chinese/LangUtils.java
+END
+CRFWordSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/2848/toolbox/base/src/java/org/thunlp/language/chinese/CRFWordSegment.java
+END
+ContentFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/2631/toolbox/base/src/java/org/thunlp/language/chinese/ContentFilter.java
+END

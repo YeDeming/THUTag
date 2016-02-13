@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3252/toolbox/base/src/test/org/thunlp/language/chinese
+END
+BigramWordSegmentTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/BigramWordSegmentTest.java
+END
+ForwardMaxWordSegmentTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/529/toolbox/base/src/test/org/thunlp/language/chinese/ForwardMaxWordSegmentTest.java
+END
+NaiveBigramWordSegmentTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/NaiveBigramWordSegmentTest.java
+END
+TestIndexOutofRange.txt
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/TestIndexOutofRange.txt
+END
+IctclasWordSegmentTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/IctclasWordSegmentTest.java
+END
+WordChineseTokenizerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/WordChineseTokenizerTest.java
+END
+LangUtilsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/1457/toolbox/base/src/test/org/thunlp/language/chinese/LangUtilsTest.java
+END
+CRFWordSegmentTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/3252/toolbox/base/src/test/org/thunlp/language/chinese/CRFWordSegmentTest.java
+END
+ContentFilterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/336/toolbox/base/src/test/org/thunlp/language/chinese/ContentFilterTest.java
+END

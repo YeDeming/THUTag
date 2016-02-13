@@ -1,0 +1,149 @@
+package org.thunlp.text;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
+import org.thunlp.text.classifiers.BigramChineseTextClassifier;
+import org.thunlp.text.classifiers.ClassifyResult;
+import org.thunlp.text.classifiers.TextClassifier;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
+public class BigramChineseTextClassifierTest extends TestCase {
+	String [] trainingSet = {
+			"昨日，新劳动法宣传在我市启动，上万市民在解放碑活动现场咨询和索取新法资料。",
+			"昨日，在《劳动合同法》、《就业促进法》宣传启动仪式上，一些市民又爆出一些用人单位试图规避法律的新招。",
+			"说实话，我对新劳动法几乎是一无所知，根本没没关心过什么劳动法的问题，因为中国一直是上有政策，下有对策。",
+			"谈回手表，如果你说手表只是人们了解时间的工具。那我想我如今都不需要手表，我从手机上也可以知道时间。",
+			"手表找回来了。原来是跟别人聊天聊得太起劲，放在那了，不过还是谢谢哈，这几天没了手表真不习惯，受伤总感觉少了什么",
+			"昨晚做一个梦，手表停在了9点，早上上班时发现手表果真停了，是在凌晨的时候。"
+	};
+	int [] labels = { 0, 0, 0, 1, 1, 1};
+	
+	String [] testSet = {
+		"而旧的《劳动法》中规定“第三十二条，在试用期内劳动者可以随时通知用人单位解除劳动合同”",
+		"可这块也许只几十块钱的手表，普通万分甚至称的上土气难看的块手表，却被我视如珍宝。"
+	};
+	
+	int [] answers = {0,1};
+	
+	public void testClassifySanityCheck () {
+		TextClassifier tc = new BigramChineseTextClassifier(2);
+		for ( int i = 0 ; i < trainingSet.length ; i++ )
+			tc.addTrainingText( trainingSet[i], labels[i]);
+		
+		tc.train();
+		System.out.println("model trained");
+		
+		for ( int i = 0 ; i < testSet.length ; i++ ) {
+			ClassifyResult cr = tc.classify(testSet[i]);
+			Assert.assertEquals(answers[i], cr.label);
+		}
+	}
+	
+	public void testFeatureSelectSanityCheck () {
+		BigramChineseTextClassifier tc = new BigramChineseTextClassifier(2);
+		for ( int i = 0 ; i < trainingSet.length ; i++ )
+			Assert.assertTrue(tc.addTrainingText( trainingSet[i], labels[i]));
+		
+		tc.setMaxFeatures(4);
+		Assert.assertTrue(tc.train());
+		System.out.println("model trained");
+		
+		for ( int i = 0 ; i < testSet.length ; i++ ) {
+			ClassifyResult cr = tc.classify(testSet[i]);
+			Assert.assertEquals(answers[i], cr.label);
+		}
+	}
+	
+	public void testModelSaveLoad() {
+		TextClassifier tc = new BigramChineseTextClassifier(2);
+		for ( int i = 0 ; i < trainingSet.length ; i++ )
+			tc.addTrainingText( trainingSet[i], labels[i]);
+		
+		tc.train();
+		System.out.println("model trained");
+		boolean rtn;
+		rtn = tc.saveModel( "tmp-model-for-test" );
+		Assert.assertTrue(rtn);
+		tc = new BigramChineseTextClassifier(2);
+		rtn = tc.loadModel( "tmp-model-for-test" );
+		Assert.assertTrue(rtn);
+		for ( int i = 0 ; i < testSet.length ; i++ ) {
+			ClassifyResult cr = tc.classify(testSet[i]);
+			Assert.assertEquals(answers[i], cr.label);
+		}
+		File model = new File("tmp-model-for-test");
+		
+		File [] internals = model.listFiles();
+		for ( File f : internals ) 
+			f.delete();
+		model.delete();
+	}
+	
+	public void testChiSquareSelect() throws IOException {
+		int [][][] docs = {
+			{ {0, 1, 3}, {0, 3 } }, // class 0
+			{ {0, 2}, {0, 2, 4} }, // class 1
+		};
+		
+		double [] chimaxStandard = {
+			0, 1.0/3.0, 1.0, 1.0, 1.0/3.0	
+		};
+		
+		double [] chimax = new double[chimaxStandard.length];
+		
+		int [] mapStandard = {
+				2, 3
+		};
+		
+		File vectorFile = File.createTempFile("testcase", ".dat");
+		vectorFile.deleteOnExit();
+		
+		DataOutputStream dos = 
+			new DataOutputStream(new FileOutputStream(vectorFile));
+		for ( int label = 0 ; label < docs.length ; label++ ) {
+			for ( int doc = 0 ; doc < docs[label].length ; doc++ ) {
+				dos.writeInt(label);
+				dos.writeInt(docs[label][doc].length);
+				for ( int t = 0 ; t < docs[label][doc].length ; t++ ) {
+					dos.writeInt(docs[label][doc][t]);
+					dos.writeDouble(1.0);
+				}
+			}
+		}
+		dos.close();
+		
+		BigramChineseTextClassifier tc = 
+			new BigramChineseTextClassifier( docs.length );
+		
+		Map<Integer, Integer> selected = 
+			tc.selectFeaturesByChiSquare(vectorFile, 
+					chimaxStandard.length, mapStandard.length, 4, 2, 4, chimax);
+		
+		// 保证选出来的特征是对的
+		for ( int i = 0 ; i < mapStandard.length ; i++ ) {
+			Assert.assertEquals(i, (int)selected.get(mapStandard[i]));
+		}
+		
+		// 保证每个特征的chimax值是正确的
+		for ( int i = 0 ; i < chimax.length ; i++ ) {
+			Assert.assertEquals(chimaxStandard[i], chimax[i]);
+		}
+	}
+	
+	
+	public void tearDown() {
+		File model = new File("tmp-model-for-test");
+		if ( model.exists() ) {
+			File [] internals = model.listFiles();
+			for ( File f : internals ) 
+				f.delete();
+			model.delete();
+		}
+	}
+}

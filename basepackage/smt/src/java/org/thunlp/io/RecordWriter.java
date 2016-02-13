@@ -1,0 +1,106 @@
+package org.thunlp.io;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.thunlp.hadoop.FolderWriter;
+
+/*
+ * Write records to the underlying file, which can be plain text file, gzip file
+ * zip file or sequence file.
+ */
+public class RecordWriter {
+	public static int TYPE_PLAIN_TEXT = 0;
+	public static int TYPE_ZIPPED_TEXT = 1;
+	public static int TYPE_GZIPPED_TEXT = 2;
+	public static int TYPE_SEQUENCE_FILE = 3;
+
+	protected boolean isSequenceFile = false;
+	protected BufferedWriter writer = null;
+	protected ZipOutputStream zipout = null;
+	protected FolderWriter sequenceFileWriter = null;
+	protected Text key = new Text();
+	protected Text value = new Text();
+	protected int numWrote = 0;
+
+	public RecordWriter(String name) throws IOException {
+		this(name, "UTF-8");
+	}
+
+	public RecordWriter(String name, String charset) throws IOException {
+		this(name, charset, RecordReader.detectType(name), RecordReader.detectFs(name));
+	}
+
+	public RecordWriter(String name, String charset, int type, boolean onHdfs) throws IOException {
+		if (onHdfs && name.startsWith("/hdfs/")) {
+			name = name.substring("/hdfs".length());
+		}
+		if (type == RecordWriter.TYPE_PLAIN_TEXT) {
+			writer = new BufferedWriter(new OutputStreamWriter(getOutputStream(name, onHdfs), charset));
+			isSequenceFile = false;
+		} else if (type == RecordWriter.TYPE_GZIPPED_TEXT) {
+			writer = new BufferedWriter(
+					new OutputStreamWriter(new GZIPOutputStream(getOutputStream(name, onHdfs)), charset));
+			isSequenceFile = false;
+		} else if (type == RecordWriter.TYPE_ZIPPED_TEXT) {
+			zipout = new ZipOutputStream(getOutputStream(name, onHdfs));
+			writer = new BufferedWriter(new OutputStreamWriter(zipout, charset));
+			zipout.putNextEntry(new ZipEntry("part-00000.txt"));
+			isSequenceFile = false;
+		} else if (type == RecordWriter.TYPE_SEQUENCE_FILE) {
+			sequenceFileWriter = new FolderWriter(new Path(name), Text.class, Text.class);
+			isSequenceFile = true;
+		}
+	}
+
+	public void add(String value) throws IOException {
+		add(Integer.toString(numWrote), value);
+	}
+
+	public void add(String key, String value) throws IOException {
+		if (isSequenceFile) {
+			this.key.set(key);
+			this.value.set(value);
+			sequenceFileWriter.append(this.key, this.value);
+		} else {
+			writer.write(value);
+			writer.write("\n");
+		}
+		numWrote++;
+	}
+
+	public void close() throws IOException {
+		if (isSequenceFile) {
+			sequenceFileWriter.close();
+		} else {
+			writer.close();
+		}
+	}
+
+	public void flush() throws IOException {
+		// SequenceFile does not support flush operation.
+		if (!isSequenceFile) {
+			writer.flush();
+		}
+	}
+
+	protected OutputStream getOutputStream(String path, boolean onHdfs) throws IOException {
+		if (onHdfs) {
+			FileSystem fs = FileSystem.get(new JobConf());
+			return fs.create(new Path(path));
+		} else {
+			return new FileOutputStream(new File(path));
+		}
+	}
+}

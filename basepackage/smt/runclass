@@ -1,0 +1,9 @@
+#!/bin/bash
+APPHOME=./
+LCP=.
+for l in $APPHOME/lib/* ; do
+	LCP=$LCP:$l
+done
+LCP=$LCP:./build/classes
+java -server -Xmx1536M -Dfile.encoding=UTF-8 -cp $LCP $*
+
