@@ -38,6 +38,8 @@ build :　Working directory
 
 GIZA++  mkcls  plain2snt.out : Essential to running WTM/WAM/WAM*
 
+basepackage : some codes achieve things such as word segmentation, pagerank and so on
+ 
 Part II: How To Compile THUTag
 ==============
 
