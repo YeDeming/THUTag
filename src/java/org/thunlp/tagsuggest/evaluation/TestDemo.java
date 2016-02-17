@@ -19,6 +19,7 @@ import org.thunlp.misc.Flags;
 import org.thunlp.misc.WeightString;
 import org.thunlp.tagsuggest.common.ConfigIO;
 import org.thunlp.tagsuggest.common.Post;
+import org.thunlp.tagsuggest.common.KeywordPost;
 import org.thunlp.tagsuggest.common.TagSuggest;
 import org.thunlp.tool.GenericTool;
 
@@ -64,8 +65,9 @@ public class TestDemo  implements GenericTool{
 			String title = reader.readLine();
 			String content = reader.readLine();
 			
-		    Post p = new Post();
+		    KeywordPost p = new KeywordPost();     //a trick that avoid error in extract  KeywordPost
 		    p.setTitle(title);
+		    p.setSummary("");
 		    p.setContent(content);
 
 		    StringBuilder explain = new StringBuilder();

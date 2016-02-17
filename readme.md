@@ -133,7 +133,9 @@ Part VI: How To Run UI & Test a Single Passage with THUTag
 Command for training model : java -Xmx8G -jar tagsuggest.jar train.TrainWTM --input=/home/meepo/test/sampleui/bookPost70000.dat --output=/home/meepo/test/sample --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" 
 
 "input" is the train data's address.
-"output" is where the model will be set.
+"output" is where the model will be set.Attention:TrainTopicPageRank/TrainTAM/TrainTagLdaModel/TrainNoiseTagLdaModel and so on will save the model as a file (rather than a directory),such as
+java -Xmx5G -jar tagsuggest.jar train.TrainTopicPageRank --input=/home/meepo/test/sample/KeywordPost.dat --output=/home/meepo/test/sample/1.rar --config="dataType=KeywordPost;numtopics=50;mintagfreq=10" 
+
 "config"  is the config of the model.
 
  
@@ -144,7 +146,7 @@ Command for running UI : java -Xmx8G -jar tagsuggest.jar evaluation.GuiFrontEnd 
 "config" is the config of thetrain class.
 
  
-Test a single passage : java -Xmx8G -jar tagsuggest.jar evaluation.TestDemo --model_path=/home/meepo/test/sampleui/ --algorithm=SMTTagSuggest --config="" --article_path=/home/meepo/text --output_path=/home/meepo/tag 
+Test a single passage : java -Xmx8G -jar tagsuggest.jar evaluation.TestDemo --model_path=/home/meepo/test/sampleui/ --algorithm=SMTTagSuggest --config="" --article_path=/home/meepo/text.txt --output_path=/home/meepo/tag.txt
   
 "model_path" is the model's address.
 "algorith" is the train class that we choose.
@@ -160,7 +162,7 @@ Part VII: Input File Formats of UI & Testing a Single Passage
 ==============
 
 In the UI interface,you can input text directly.
-And when test a individual text file,the text file must contains two lines:the first line is the title of the article and the second line is the content of the article.
+And when test a individual text file,the text file must contains two lines:the first line is the title of the article and the second line is the content of the article.You can change the format in evaluation.TestDemo's doSuggest.
 
 Part VIII: Output File Formats of UI & Testing a Single Passage
 ==============
