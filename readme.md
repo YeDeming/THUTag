@@ -133,7 +133,7 @@ Part VI: How To Run UI & Test a Single Passage with THUTag
 Command for training model : java -Xmx8G -jar tagsuggest.jar train.TrainWTM --input=/home/meepo/test/sampleui/bookPost70000.dat --output=/home/meepo/test/sample --config="dataType=DoubanPost;para=0.5;minwordfreq=10;mintagfreq=10;selfTrans=0.2;commonLimit=2" 
 
 "input" is the train data's address.
-"output" is where the model will be set.Attention:TrainTopicPageRank/TrainTAM/TrainTagLdaModel/TrainNoiseTagLdaModel and so on will save the model as a file (rather than a directory),such as
+"output" is where the model will be set.Attention:TrainTopicPageRank/TrainTagLdaModel/TrainNoiseTagLdaModel will save the model as a file (rather than a directory),for example:
 java -Xmx5G -jar tagsuggest.jar train.TrainTopicPageRank --input=/home/meepo/test/sample/KeywordPost.dat --output=/home/meepo/test/sample/1.rar --config="dataType=KeywordPost;numtopics=50;mintagfreq=10" 
 
 "config"  is the config of the model.
