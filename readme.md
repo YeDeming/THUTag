@@ -1,4 +1,7 @@
 # THUTag: A Package of Kephrase Extraction and Social Tag Suggetion 
+
+This project has been moved to https://github.com/thunlp/THUTag
+
 ==============
 
 Table of Content
