@@ -98,6 +98,7 @@ The evaluation results on Keyword Post Dataset (M_d=2,select the two keywords wi
 | TFIDF | 0.25459 | 0.20083 | 0.21876 |
 | Textpagerank | 0.19833 | 0.22971 | 0.20837 |
 
+And if you use the file "chinese_stopword_more" to clean the adv.,conj. and so on,you may get better evaluation score.
 
 Part IV: Datasets and Formats for Evaluation
 ==============
