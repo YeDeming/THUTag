@@ -72,6 +72,7 @@ public class TrainPMI implements GenericTool, ModelTrainer {
 		flags.add("input");
 		flags.add("output");
 		flags.add("config");
+		flags.parseAndCheck(args);
 
 		Properties config = ConfigIO
 				.configFromString(flags.getString("config"));
