@@ -200,7 +200,7 @@ If you’re dealing in depth with particular algorithms, you are also encouraged
 Part X: License
 ==============
 
-THUTag is licensed under the GNU General Public License (v3 or later). Note that the license is the full GPL, which allows many free uses, but not its use in proprietary software which is distributed to others. For distributors of proprietary software, commercial licensing is available from Tsinghua University. You can contact us at thunlp@gmail.com .
+THUTag is licensed under the GNU General Public License (v3 or later). Note that the license is the full MIT, which allows many free uses, but not its use in proprietary software which is distributed to others. For distributors of proprietary software, commercial licensing is available from Tsinghua University. You can contact us at thunlp@gmail.com .
 
 Part XI: Authors
 ==============
